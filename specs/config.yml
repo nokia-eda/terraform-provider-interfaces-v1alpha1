@@ -1,0 +1,101 @@
+provider:
+  name: interfaces
+
+data_sources:
+  app_group:
+    read:
+      path: /apps/interfaces.eda.nokia.com
+      method: GET
+
+  breakout:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: GET
+
+  breakout_list:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts
+      method: GET
+
+  check_interfaces:
+    read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}
+      method: GET
+
+  check_interfaces_list:
+    read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess
+      method: GET
+
+  interface:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: GET
+
+  interface_list:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces
+      method: GET
+
+  interface_state:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: GET
+
+  interface_state_list:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates
+      method: GET
+
+  resource_list:
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1
+      method: GET
+
+  workflow_get_inputs_resp_elem:
+    read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}/_input
+      method: GET
+
+resources:
+  breakout:
+    create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts
+      method: POST
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: GET
+    update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: PUT
+    delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: DELETE
+
+  interface:
+    create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces
+      method: POST
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: GET
+    update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: PUT
+    delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: DELETE
+
+  interface_state:
+    create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates
+      method: POST
+    read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: GET
+    update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: PUT
+    delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: DELETE

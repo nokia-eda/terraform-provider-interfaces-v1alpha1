@@ -1,0 +1,202 @@
+app_group:
+  - read:
+      path: /apps/interfaces.eda.nokia.com
+      method: GET
+
+patch:
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: PATCH
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: PATCH
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: PATCH
+
+resource_history:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}/_revs
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}/_revs
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}/_revs
+      method: GET
+
+resource_list:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1
+      method: GET
+
+resource_topology:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}/_topology
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}/_topology
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}/_topology
+      method: GET
+
+status:
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: DELETE
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: DELETE
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: DELETE
+
+ui_result:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/_ui/{pathname}
+      method: GET
+
+workflow_get_inputs_resp_elem:
+  - read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}/_input
+      method: GET
+
+workflow_input_data:
+  - update:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}/_input
+      method: PUT
+
+com.nokia.eda.interfaces.v1alpha1.breakout:
+  - create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts
+      method: POST
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: GET
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}
+      method: PUT
+
+com.nokia.eda.interfaces.v1alpha1.breakout_list:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/breakouts
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts
+      method: GET
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts
+      method: DELETE
+
+com.nokia.eda.interfaces.v1alpha1.breakout_deleted_resources:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/_deleted
+      method: GET
+
+com.nokia.eda.interfaces.v1alpha1.check_interfaces:
+  - create:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess
+      method: POST
+  - read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}
+      method: GET
+
+com.nokia.eda.interfaces.v1alpha1.check_interfaces_list:
+  - read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/checkinterfacess
+      method: GET
+  - read:
+      path: /workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess
+      method: GET
+
+com.nokia.eda.interfaces.v1alpha1.interface:
+  - create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces
+      method: POST
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: GET
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}
+      method: PUT
+
+com.nokia.eda.interfaces.v1alpha1.interface_list:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/interfaces
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces
+      method: GET
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces
+      method: DELETE
+
+com.nokia.eda.interfaces.v1alpha1.interface_state:
+  - create:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates
+      method: POST
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: GET
+  - update:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/{name}
+      method: PUT
+
+com.nokia.eda.interfaces.v1alpha1.interface_state_list:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/interfacestates
+      method: GET
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates
+      method: GET
+  - delete:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates
+      method: DELETE
+
+com.nokia.eda.interfaces.v1alpha1.interface_state_deleted_resources:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfacestates/_deleted
+      method: GET
+
+com.nokia.eda.interfaces.v1alpha1.interface_deleted_resources:
+  - read:
+      path: /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/_deleted
+      method: GET
+
+totalPaths: 28
+totalSchemas: 51
+usedSchemas: 20
+unusedSchemas: 31
+unusedSchemaList:
+  - AppGroupVersion
+  - ErrorIndex
+  - ErrorItem
+  - ErrorResponse
+  - K8SPatchOp
+  - OverlayState
+  - Resource
+  - ResourceHistoryEntry
+  - StatusDetails
+  - TopoAttrMetadata
+  - TopoElemMetadata
+  - TopoLinkEndpoint
+  - TopoNodeGrouping
+  - TopoOverlayEndpoint
+  - TopoOverlayEndpointState
+  - TopoOverlayLink
+  - TopoOverlayLinkState
+  - TopoOverlayNode
+  - TopoOverlayNodeState
+  - TopoSchema
+  - Topology
+  - WorkflowId
+  - WorkflowIdentifier
+  - WorkflowInputDataElem
+  - com.nokia.eda.interfaces.v1alpha1.Breakout_DeletedResourceEntry
+  - com.nokia.eda.interfaces.v1alpha1.Breakout_metadata
+  - com.nokia.eda.interfaces.v1alpha1.CheckInterfaces_metadata
+  - com.nokia.eda.interfaces.v1alpha1.InterfaceState_DeletedResourceEntry
+  - com.nokia.eda.interfaces.v1alpha1.InterfaceState_metadata
+  - com.nokia.eda.interfaces.v1alpha1.Interface_DeletedResourceEntry
+  - com.nokia.eda.interfaces.v1alpha1.Interface_metadata
