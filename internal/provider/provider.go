@@ -246,7 +246,7 @@ func validate(diags *diag.Diagnostics, cfg *apiclient.Config) {
 }
 
 func (p *interfacesProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "interfaces"
+	resp.TypeName = "interfaces-v1alpha1"
 	resp.Version = p.version
 }
 

@@ -1,16 +1,8 @@
-ENV ?= default
-
-ifeq ($(ENV), default)
-	include environments/.env
-else
-	include environments/.env.$(ENV)
-endif
-
 BUILD_DIR := build
 PROVIDER_NAME := interfaces-v1alpha1
 TF_PROVIDER_NAME := terraform-provider-${PROVIDER_NAME}
 TERRAFORMRC := "${HOME}/.terraformrc"
-KEY := "github.com/nokia-eda/${PROVIDER_NAME}"
+TF_RC_DEV_KEY := "github.com/nokia-eda/${PROVIDER_NAME}"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -48,7 +40,7 @@ build: fmt vet ## Build the terraform provider
 .PHONY: install
 install: build ## Install the terraform provider
 	@echo "Installing ${TF_PROVIDER_NAME} dev override"
-	@export TERRAFORMRC=${TERRAFORMRC} KEY=${KEY} BUILD_PATH="$$(realpath ${BUILD_DIR})"; \
+	@export TERRAFORMRC=${TERRAFORMRC} KEY=${TF_RC_DEV_KEY} BUILD_PATH="$$(realpath ${BUILD_DIR})"; \
 	[ -f "$${TERRAFORMRC}" ] || { echo "Creating $${TERRAFORMRC}"; echo 'provider_installation {\n  dev_overrides {\n  }\n  direct {}\n}' > "$${TERRAFORMRC}"; }; \
 	if grep -q "$${KEY}" "$${TERRAFORMRC}"; then \
 		echo "Key $${KEY} already present in $${TERRAFORMRC}"; \
@@ -65,6 +57,6 @@ install: build ## Install the terraform provider
 uninstall: ## Uninstall the terraform provider
 	@echo "Uninstalling ${TF_PROVIDER_NAME} dev override"
 	@rm -rf ${BUILD_DIR}
-	@export TERRAFORMRC=${TERRAFORMRC} KEY=${KEY}; \
+	@export TERRAFORMRC=${TERRAFORMRC} KEY=${TF_RC_DEV_KEY}; \
 	awk -v key="$${KEY}" '$$0 ~ key { next } { print }' "$${TERRAFORMRC}" > "$${TERRAFORMRC}.tmp" && mv "$${TERRAFORMRC}.tmp" "$${TERRAFORMRC}"; \
 	echo "Removed key $${KEY} from dev_overrides block in $${TERRAFORMRC};"
