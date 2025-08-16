@@ -27,6 +27,7 @@ make uninstall
 This removes the binary from the `./build` directory and removes the corresponding provider key in the `dev_overrides` block from the `${HOME}/.terraform.rc` file.
 
 ## Provider configuration variables
+
 | TF variable         | OS env variable     | Default     | Description         |
 | ------------------- | ------------------- | ----------- | ------------------- |
 | base_url            | EDA_BASE_URL        |             | Base URL            |
