@@ -2,7 +2,7 @@ BUILD_DIR := build
 PROVIDER_NAME := interfaces-v1alpha1
 TF_PROVIDER_NAME := terraform-provider-${PROVIDER_NAME}
 TERRAFORMRC := "${HOME}/.terraformrc"
-TF_RC_DEV_KEY := "github.com/nokia-eda/${PROVIDER_NAME}"
+TF_RC_DEV_KEY := "nokia-eda/${PROVIDER_NAME}"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
