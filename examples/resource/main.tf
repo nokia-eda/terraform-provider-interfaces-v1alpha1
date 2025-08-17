@@ -1,6 +1,4 @@
 resource "interfaces-v1alpha1_interface" "leaf1_ethernet_1_14" {
-  api_version = "interfaces.eda.nokia.com/v1alpha1"
-  kind        = "Interface"
   metadata = {
     labels = {
       "eda.nokia.com/role" = "edge"
@@ -10,7 +8,7 @@ resource "interfaces-v1alpha1_interface" "leaf1_ethernet_1_14" {
     namespace = "eda"
   }
   spec = {
-    description = "generated from terraform"
+    description = "created by terraform"
     enabled     = true
     lldp        = true
     members = [

@@ -13,7 +13,7 @@ terraform {
 provider "interfaces-v1alpha1" {
   base_url        = ""      # Example: https://eda.mydomain.com:9443 Env var: EDA_BASE_URL
   eda_username    = "admin" # Env var: EDA_USERNAME
-  eda_password    = "admin" # Env var: EDA_PASSWORD
+  eda_password    = "roman" # Env var: EDA_PASSWORD
   tls_skip_verify = true    # Env var: TLS_SKIP_VERIFY
 
   # Client secret will be fetched automatically from Keycloak if not set
