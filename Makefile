@@ -3,49 +3,36 @@ PROVIDER_NAME := interfaces-v1alpha1
 TF_PROVIDER_NAME := terraform-provider-${PROVIDER_NAME}
 TERRAFORMRC := "${HOME}/.terraformrc"
 TF_RC_DEV_KEY := "nokia-eda/${PROVIDER_NAME}"
+TFPLUGINDOCS_VERSION := v0.22.0
 
+##@ Dependencies
 
-# Detect host OS/ARCH at makefile parse time (used by targets below)
-UNAME_S := $(shell uname -s)
-UNAME_M := $(shell uname -m)
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
 
-ifeq ($(UNAME_S),Darwin)
-OS := darwin
-else
-OS := linux
-endif
-
-ifeq ($(UNAME_M),x86_64)
-ARCH := amd64
-else
-	ifeq ($(UNAME_M),aarch64)
-	ARCH := arm64
-	else
-		ifeq ($(UNAME_M),arm64)
-		ARCH := arm64
-		else
-		ARCH := $(UNAME_M)
-		endif
-	endif
-endif
-
-# tfplugindocs release to download when requested
-TFPLUGINDOCS_VERSION := 0.22.0
-TFPLUGINDOCS_NAME := tfplugindocs_${TFPLUGINDOCS_VERSION}_${OS}_${ARCH}
-TFPLUGINDOCS_ZIP := ${TFPLUGINDOCS_NAME}.zip
-TFPLUGINDOCS_URL := https://github.com/hashicorp/terraform-plugin-docs/releases/download/v${TFPLUGINDOCS_VERSION}/${TFPLUGINDOCS_ZIP}
-
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) || true ;\
+GOBIN=$(LOCALBIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $(1)-$(3) $(1)
+endef
 
 .PHONY: all
 all: build
 
 ##@ General
+
 .PHONY: help
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -57,16 +44,10 @@ clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts"
 	@rm -rf ${BUILD_DIR}
 
-
 .PHONY: fmt
-fmt: ## Run go fmt against and terraform fmt.
+fmt: ## Run go fmt and terraform fmt against code.
 	go fmt ./...
 	terraform fmt -recursive examples
-
-.PHONY: gen-docs
-gen-docs: tfplugindocs ## Generate docs using local tfplugindocs binary.
-	@echo "Generating documentation"
-	@./${BUILD_DIR}/tfplugindocs generate --provider-dir . --provider-name ${PROVIDER_NAME}
 
 .PHONY: vet
 vet: ## Run go vet against code.
@@ -74,7 +55,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: build-dir
-build-dir: ## Ensure the ./build directory exists
+build-dir:
 	@mkdir -p ${BUILD_DIR}
 
 .PHONY: build
@@ -83,14 +64,13 @@ build: build-dir fmt vet ## Build the terraform provider
 	go build -ldflags="-s -w" -o ${BUILD_DIR}/${TF_PROVIDER_NAME} main.go
 
 .PHONY: tfplugindocs
-tfplugindocs: build-dir ## Download tfplugindocs binary for host OS/ARCH and unpack into build/
-	@if [ ! -f "${BUILD_DIR}/tfplugindocs" ]; then \
-		echo "Detected OS=$(OS) ARCH=$(ARCH)"; \
-		echo "Downloading tfplugindocs..."; \
-		./scripts/tfplugindocs.sh "${TFPLUGINDOCS_URL}" "${TFPLUGINDOCS_ZIP}" "${BUILD_DIR}"; \
-	else \
-		echo "tfplugindocs already exists at ${BUILD_DIR}/tfplugindocs, skipping download"; \
-	fi
+tfplugindocs: $(LOCALBIN) ## Download tfplugindocs binary into bin
+	$(call go-install-tool,$(LOCALBIN)/tfplugindocs,github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs,$(TFPLUGINDOCS_VERSION))
+
+.PHONY: gen-docs
+gen-docs: tfplugindocs ## Generate docs using local tfplugindocs binary.
+	@echo "Generating documentation"
+	@$(LOCALBIN)/tfplugindocs generate --provider-dir . --provider-name ${PROVIDER_NAME}
 
 ##@ Deployment
 
@@ -117,8 +97,3 @@ uninstall: ## Uninstall the terraform provider
 	@export TERRAFORMRC=${TERRAFORMRC} KEY=${TF_RC_DEV_KEY}; \
 	awk -v key="$${KEY}" '$$0 ~ key { next } { print }' "$${TERRAFORMRC}" > "$${TERRAFORMRC}.tmp" && mv "$${TERRAFORMRC}.tmp" "$${TERRAFORMRC}"; \
 	echo "Removed key $${KEY} from dev_overrides block in $${TERRAFORMRC};"
-
-.PHONY: gen-docs
-gen-docs: ## Generate documentation
-	@echo "Generating documentation"
-	@./${BUILD_DIR}/tfplugindocs generate --provider-dir . --provider-name ${PROVIDER_NAME}
