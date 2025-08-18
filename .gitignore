@@ -1,3 +1,4 @@
+bin/
 build/
 .*.json
 **/terraform.tfstate*

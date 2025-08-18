@@ -7,8 +7,6 @@ terraform {
   }
 }
 
-
-
 # Provider configuration
 provider "interfaces-v1alpha1" {
   base_url        = ""      # Example: https://eda.mydomain.com:9443 Env var: EDA_BASE_URL
