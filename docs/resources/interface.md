@@ -90,7 +90,7 @@ Optional:
 - `speed` (String) The speed of this interface, in human-readable format - e.g. 25G, 100G.
 - `standby_signaling` (String) Indicates the standby-signaling used in the interface.
 - `storm_control` (Attributes) Enables storm control. (see [below for nested schema](#nestedatt--spec--ethernet--storm_control))
-- `transparent_l2cpprotocols` (List of String) A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.
+- `transparent_l2cp_protocols` (List of String) A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.
 
 <a id="nestedatt--spec--ethernet--storm_control"></a>
 ### Nested Schema for `spec.ethernet.storm_control`
@@ -159,14 +159,14 @@ Optional:
 Optional:
 
 - `enabled` (Boolean) The administrative status of the Interface.
-- `lag_1` (Attributes) (see [below for nested schema](#nestedatt--status--lag_1))
+- `lag` (Attributes) (see [below for nested schema](#nestedatt--status--lag))
 - `last_change` (String) Indicates when this Interface last changed state.
-- `members_1` (Attributes List) List of members in this Interface. (see [below for nested schema](#nestedatt--status--members_1))
+- `members` (Attributes List) List of members in this Interface. (see [below for nested schema](#nestedatt--status--members))
 - `operational_state` (String) Indicates the current operational state of the Interface.
 - `speed` (String) Indicates the operational speed of the Interface in aggregate.
 
-<a id="nestedatt--status--lag_1"></a>
-### Nested Schema for `status.lag_1`
+<a id="nestedatt--status--lag"></a>
+### Nested Schema for `status.lag`
 
 Optional:
 
@@ -174,8 +174,8 @@ Optional:
 - `system_id_mac` (String)
 
 
-<a id="nestedatt--status--members_1"></a>
-### Nested Schema for `status.members_1`
+<a id="nestedatt--status--members"></a>
+### Nested Schema for `status.members`
 
 Required:
 
@@ -186,13 +186,13 @@ Optional:
 - `enabled` (Boolean) The administrative status of this member.
 - `interface` (String) The name of the interface in normalized format.
 - `last_change` (String) Indicates when this member last changed state.
-- `neighbors` (Attributes List) List of discovered neighbors on this member. (see [below for nested schema](#nestedatt--status--members_1--neighbors))
+- `neighbors` (Attributes List) List of discovered neighbors on this member. (see [below for nested schema](#nestedatt--status--members--neighbors))
 - `node` (String) The node on which the interface is configured.
 - `operational_state` (String) Indicates the current operational state of this member.
 - `speed` (String) Indicates the operational speed of the member.
 
-<a id="nestedatt--status--members_1--neighbors"></a>
-### Nested Schema for `status.members_1.neighbors`
+<a id="nestedatt--status--members--neighbors"></a>
+### Nested Schema for `status.members.neighbors`
 
 Optional:
 

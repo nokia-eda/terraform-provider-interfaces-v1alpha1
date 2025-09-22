@@ -157,7 +157,7 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 											Description:         "Enables storm control.",
 											MarkdownDescription: "Enables storm control.",
 										},
-										"transparent_l2cpprotocols": schema.ListAttribute{
+										"transparent_l2cp_protocols": schema.ListAttribute{
 											ElementType:         types.StringType,
 											Optional:            true,
 											Description:         "A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.",
@@ -363,7 +363,7 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 									Description:         "The administrative status of the Interface.",
 									MarkdownDescription: "The administrative status of the Interface.",
 								},
-								"lag_1": schema.SingleNestedAttribute{
+								"lag": schema.SingleNestedAttribute{
 									Attributes: map[string]schema.Attribute{
 										"admin_key": schema.Int64Attribute{
 											Computed: true,
@@ -384,7 +384,7 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 									Description:         "Indicates when this Interface last changed state.",
 									MarkdownDescription: "Indicates when this Interface last changed state.",
 								},
-								"members_1": schema.ListNestedAttribute{
+								"members": schema.ListNestedAttribute{
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"enabled": schema.BoolAttribute{
@@ -487,7 +487,7 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 			"kind": schema.StringAttribute{
 				Computed: true,
 			},
-			"labelselector": schema.StringAttribute{
+			"label_selector": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Description:         "a label selector string to filter the results based on CR labels",
@@ -508,7 +508,7 @@ type InterfaceListModel struct {
 	Filter        types.String `tfsdk:"filter"`
 	Items         types.List   `tfsdk:"items"`
 	Kind          types.String `tfsdk:"kind"`
-	Labelselector types.String `tfsdk:"labelselector"`
+	LabelSelector types.String `tfsdk:"label_selector"`
 	Namespace     types.String `tfsdk:"namespace"`
 }
 
@@ -2747,22 +2747,22 @@ func (t EthernetType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 			fmt.Sprintf(`storm_control expected to be basetypes.ObjectValue, was: %T`, stormControlAttribute))
 	}
 
-	transparentL2cpprotocolsAttribute, ok := attributes["transparent_l2cpprotocols"]
+	transparentL2cpProtocolsAttribute, ok := attributes["transparent_l2cp_protocols"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`transparent_l2cpprotocols is missing from object`)
+			`transparent_l2cp_protocols is missing from object`)
 
 		return nil, diags
 	}
 
-	transparentL2cpprotocolsVal, ok := transparentL2cpprotocolsAttribute.(basetypes.ListValue)
+	transparentL2cpProtocolsVal, ok := transparentL2cpProtocolsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`transparent_l2cpprotocols expected to be basetypes.ListValue, was: %T`, transparentL2cpprotocolsAttribute))
+			fmt.Sprintf(`transparent_l2cp_protocols expected to be basetypes.ListValue, was: %T`, transparentL2cpProtocolsAttribute))
 	}
 
 	if diags.HasError() {
@@ -2777,7 +2777,7 @@ func (t EthernetType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 		Speed:                    speedVal,
 		StandbySignaling:         standbySignalingVal,
 		StormControl:             stormControlVal,
-		TransparentL2cpprotocols: transparentL2cpprotocolsVal,
+		TransparentL2cpProtocols: transparentL2cpProtocolsVal,
 		state:                    attr.ValueStateKnown,
 	}, diags
 }
@@ -2971,22 +2971,22 @@ func NewEthernetValue(attributeTypes map[string]attr.Type, attributes map[string
 			fmt.Sprintf(`storm_control expected to be basetypes.ObjectValue, was: %T`, stormControlAttribute))
 	}
 
-	transparentL2cpprotocolsAttribute, ok := attributes["transparent_l2cpprotocols"]
+	transparentL2cpProtocolsAttribute, ok := attributes["transparent_l2cp_protocols"]
 
 	if !ok {
 		diags.AddError(
 			"Attribute Missing",
-			`transparent_l2cpprotocols is missing from object`)
+			`transparent_l2cp_protocols is missing from object`)
 
 		return NewEthernetValueUnknown(), diags
 	}
 
-	transparentL2cpprotocolsVal, ok := transparentL2cpprotocolsAttribute.(basetypes.ListValue)
+	transparentL2cpProtocolsVal, ok := transparentL2cpProtocolsAttribute.(basetypes.ListValue)
 
 	if !ok {
 		diags.AddError(
 			"Attribute Wrong Type",
-			fmt.Sprintf(`transparent_l2cpprotocols expected to be basetypes.ListValue, was: %T`, transparentL2cpprotocolsAttribute))
+			fmt.Sprintf(`transparent_l2cp_protocols expected to be basetypes.ListValue, was: %T`, transparentL2cpProtocolsAttribute))
 	}
 
 	if diags.HasError() {
@@ -3001,7 +3001,7 @@ func NewEthernetValue(attributeTypes map[string]attr.Type, attributes map[string
 		Speed:                    speedVal,
 		StandbySignaling:         standbySignalingVal,
 		StormControl:             stormControlVal,
-		TransparentL2cpprotocols: transparentL2cpprotocolsVal,
+		TransparentL2cpProtocols: transparentL2cpProtocolsVal,
 		state:                    attr.ValueStateKnown,
 	}, diags
 }
@@ -3081,7 +3081,7 @@ type EthernetValue struct {
 	Speed                    basetypes.StringValue `tfsdk:"speed"`
 	StandbySignaling         basetypes.StringValue `tfsdk:"standby_signaling"`
 	StormControl             basetypes.ObjectValue `tfsdk:"storm_control"`
-	TransparentL2cpprotocols basetypes.ListValue   `tfsdk:"transparent_l2cpprotocols"`
+	TransparentL2cpProtocols basetypes.ListValue   `tfsdk:"transparent_l2cp_protocols"`
 	state                    attr.ValueState
 }
 
@@ -3100,7 +3100,7 @@ func (v EthernetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 	attrTypes["storm_control"] = basetypes.ObjectType{
 		AttrTypes: StormControlValue{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
-	attrTypes["transparent_l2cpprotocols"] = basetypes.ListType{
+	attrTypes["transparent_l2cp_protocols"] = basetypes.ListType{
 		ElemType: types.StringType,
 	}.TerraformType(ctx)
 
@@ -3166,13 +3166,13 @@ func (v EthernetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 
 		vals["storm_control"] = val
 
-		val, err = v.TransparentL2cpprotocols.ToTerraformValue(ctx)
+		val, err = v.TransparentL2cpProtocols.ToTerraformValue(ctx)
 
 		if err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["transparent_l2cpprotocols"] = val
+		vals["transparent_l2cp_protocols"] = val
 
 		if err := tftypes.ValidateValue(objectType, vals); err != nil {
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
@@ -3224,15 +3224,15 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 		)
 	}
 
-	var transparentL2cpprotocolsVal basetypes.ListValue
+	var transparentL2cpProtocolsVal basetypes.ListValue
 	switch {
-	case v.TransparentL2cpprotocols.IsUnknown():
-		transparentL2cpprotocolsVal = types.ListUnknown(types.StringType)
-	case v.TransparentL2cpprotocols.IsNull():
-		transparentL2cpprotocolsVal = types.ListNull(types.StringType)
+	case v.TransparentL2cpProtocols.IsUnknown():
+		transparentL2cpProtocolsVal = types.ListUnknown(types.StringType)
+	case v.TransparentL2cpProtocols.IsNull():
+		transparentL2cpProtocolsVal = types.ListNull(types.StringType)
 	default:
 		var d diag.Diagnostics
-		transparentL2cpprotocolsVal, d = types.ListValue(types.StringType, v.TransparentL2cpprotocols.Elements())
+		transparentL2cpProtocolsVal, d = types.ListValue(types.StringType, v.TransparentL2cpProtocols.Elements())
 		diags.Append(d...)
 	}
 
@@ -3247,7 +3247,7 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 			"storm_control": basetypes.ObjectType{
 				AttrTypes: StormControlValue{}.AttributeTypes(ctx),
 			},
-			"transparent_l2cpprotocols": basetypes.ListType{
+			"transparent_l2cp_protocols": basetypes.ListType{
 				ElemType: types.StringType,
 			},
 		}), diags
@@ -3263,7 +3263,7 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 		"storm_control": basetypes.ObjectType{
 			AttrTypes: StormControlValue{}.AttributeTypes(ctx),
 		},
-		"transparent_l2cpprotocols": basetypes.ListType{
+		"transparent_l2cp_protocols": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 	}
@@ -3279,14 +3279,14 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
-			"fec":                       v.Fec,
-			"hold_down_timer":           v.HoldDownTimer,
-			"hold_up_timer":             v.HoldUpTimer,
-			"reload_delay_timer":        v.ReloadDelayTimer,
-			"speed":                     v.Speed,
-			"standby_signaling":         v.StandbySignaling,
-			"storm_control":             stormControl,
-			"transparent_l2cpprotocols": transparentL2cpprotocolsVal,
+			"fec":                        v.Fec,
+			"hold_down_timer":            v.HoldDownTimer,
+			"hold_up_timer":              v.HoldUpTimer,
+			"reload_delay_timer":         v.ReloadDelayTimer,
+			"speed":                      v.Speed,
+			"standby_signaling":          v.StandbySignaling,
+			"storm_control":              stormControl,
+			"transparent_l2cp_protocols": transparentL2cpProtocolsVal,
 		})
 
 	return objVal, diags
@@ -3335,7 +3335,7 @@ func (v EthernetValue) Equal(o attr.Value) bool {
 		return false
 	}
 
-	if !v.TransparentL2cpprotocols.Equal(other.TransparentL2cpprotocols) {
+	if !v.TransparentL2cpProtocols.Equal(other.TransparentL2cpProtocols) {
 		return false
 	}
 
@@ -3361,7 +3361,7 @@ func (v EthernetValue) AttributeTypes(ctx context.Context) map[string]attr.Type 
 		"storm_control": basetypes.ObjectType{
 			AttrTypes: StormControlValue{}.AttributeTypes(ctx),
 		},
-		"transparent_l2cpprotocols": basetypes.ListType{
+		"transparent_l2cp_protocols": basetypes.ListType{
 			ElemType: types.StringType,
 		},
 	}
@@ -6645,7 +6645,7 @@ func (t StatusType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
-	lag1Attribute, ok := attributes["lag_1"]
+	lag1Attribute, ok := attributes["lag"]
 
 	if !ok {
 		diags.AddError(
@@ -6681,7 +6681,7 @@ func (t StatusType) ValueFromObject(ctx context.Context, in basetypes.ObjectValu
 			fmt.Sprintf(`last_change expected to be basetypes.StringValue, was: %T`, lastChangeAttribute))
 	}
 
-	members1Attribute, ok := attributes["members_1"]
+	members1Attribute, ok := attributes["members"]
 
 	if !ok {
 		diags.AddError(
@@ -6831,7 +6831,7 @@ func NewStatusValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
 	}
 
-	lag1Attribute, ok := attributes["lag_1"]
+	lag1Attribute, ok := attributes["lag"]
 
 	if !ok {
 		diags.AddError(
@@ -6867,7 +6867,7 @@ func NewStatusValue(attributeTypes map[string]attr.Type, attributes map[string]a
 			fmt.Sprintf(`last_change expected to be basetypes.StringValue, was: %T`, lastChangeAttribute))
 	}
 
-	members1Attribute, ok := attributes["members_1"]
+	members1Attribute, ok := attributes["members"]
 
 	if !ok {
 		diags.AddError(
@@ -7005,9 +7005,9 @@ var _ basetypes.ObjectValuable = StatusValue{}
 
 type StatusValue struct {
 	Enabled          basetypes.BoolValue   `tfsdk:"enabled"`
-	Lag1             basetypes.ObjectValue `tfsdk:"lag_1"`
+	Lag1             basetypes.ObjectValue `tfsdk:"lag"`
 	LastChange       basetypes.StringValue `tfsdk:"last_change"`
-	Members1         basetypes.ListValue   `tfsdk:"members_1"`
+	Members1         basetypes.ListValue   `tfsdk:"members"`
 	OperationalState basetypes.StringValue `tfsdk:"operational_state"`
 	Speed            basetypes.StringValue `tfsdk:"speed"`
 	state            attr.ValueState
@@ -7020,11 +7020,11 @@ func (v StatusValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 	var err error
 
 	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
-	attrTypes["lag_1"] = basetypes.ObjectType{
+	attrTypes["lag"] = basetypes.ObjectType{
 		AttrTypes: Lag1Value{}.AttributeTypes(ctx),
 	}.TerraformType(ctx)
 	attrTypes["last_change"] = basetypes.StringType{}.TerraformType(ctx)
-	attrTypes["members_1"] = basetypes.ListType{
+	attrTypes["members"] = basetypes.ListType{
 		ElemType: Members1Value{}.Type(ctx),
 	}.TerraformType(ctx)
 	attrTypes["operational_state"] = basetypes.StringType{}.TerraformType(ctx)
@@ -7050,7 +7050,7 @@ func (v StatusValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["lag_1"] = val
+		vals["lag"] = val
 
 		val, err = v.LastChange.ToTerraformValue(ctx)
 
@@ -7066,7 +7066,7 @@ func (v StatusValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error
 			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
 		}
 
-		vals["members_1"] = val
+		vals["members"] = val
 
 		val, err = v.OperationalState.ToTerraformValue(ctx)
 
@@ -7165,11 +7165,11 @@ func (v StatusValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 
 	attributeTypes := map[string]attr.Type{
 		"enabled": basetypes.BoolType{},
-		"lag_1": basetypes.ObjectType{
+		"lag": basetypes.ObjectType{
 			AttrTypes: Lag1Value{}.AttributeTypes(ctx),
 		},
 		"last_change": basetypes.StringType{},
-		"members_1": basetypes.ListType{
+		"members": basetypes.ListType{
 			ElemType: Members1Value{}.Type(ctx),
 		},
 		"operational_state": basetypes.StringType{},
@@ -7188,9 +7188,9 @@ func (v StatusValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, 
 		attributeTypes,
 		map[string]attr.Value{
 			"enabled":           v.Enabled,
-			"lag_1":             lag1,
+			"lag":               lag1,
 			"last_change":       v.LastChange,
-			"members_1":         members1,
+			"members":           members1,
 			"operational_state": v.OperationalState,
 			"speed":             v.Speed,
 		})
@@ -7251,11 +7251,11 @@ func (v StatusValue) Type(ctx context.Context) attr.Type {
 func (v StatusValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
 		"enabled": basetypes.BoolType{},
-		"lag_1": basetypes.ObjectType{
+		"lag": basetypes.ObjectType{
 			AttrTypes: Lag1Value{}.AttributeTypes(ctx),
 		},
 		"last_change": basetypes.StringType{},
-		"members_1": basetypes.ListType{
+		"members": basetypes.ListType{
 			ElemType: Members1Value{}.Type(ctx),
 		},
 		"operational_state": basetypes.StringType{},

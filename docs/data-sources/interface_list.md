@@ -23,7 +23,7 @@ description: |-
 
 - `fields` (String) a comma-separated list of resource fields to fetch/return.  If unspecified, all fields are fetched.  If empty, only key-fields are fetched.
 - `filter` (String) an EQL "where" expression that will be used to filter the set of resources returned.
-- `labelselector` (String) a label selector string to filter the results based on CR labels
+- `label_selector` (String) a label selector string to filter the results based on CR labels
 
 ### Read-Only
 
@@ -73,7 +73,7 @@ Optional:
 - `speed` (String) The speed of this interface, in human-readable format - e.g. 25G, 100G.
 - `standby_signaling` (String) Indicates the standby-signaling used in the interface.
 - `storm_control` (Attributes) Enables storm control. (see [below for nested schema](#nestedatt--items--spec--ethernet--storm_control))
-- `transparent_l2cpprotocols` (List of String) A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.
+- `transparent_l2cp_protocols` (List of String) A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.
 
 <a id="nestedatt--items--spec--ethernet--storm_control"></a>
 ### Nested Schema for `items.spec.ethernet.storm_control`
@@ -167,14 +167,14 @@ Read-Only:
 Read-Only:
 
 - `enabled` (Boolean) The administrative status of the Interface.
-- `lag_1` (Attributes) (see [below for nested schema](#nestedatt--items--status--lag_1))
+- `lag` (Attributes) (see [below for nested schema](#nestedatt--items--status--lag))
 - `last_change` (String) Indicates when this Interface last changed state.
-- `members_1` (Attributes List) List of members in this Interface. (see [below for nested schema](#nestedatt--items--status--members_1))
+- `members` (Attributes List) List of members in this Interface. (see [below for nested schema](#nestedatt--items--status--members))
 - `operational_state` (String) Indicates the current operational state of the Interface.
 - `speed` (String) Indicates the operational speed of the Interface in aggregate.
 
-<a id="nestedatt--items--status--lag_1"></a>
-### Nested Schema for `items.status.lag_1`
+<a id="nestedatt--items--status--lag"></a>
+### Nested Schema for `items.status.lag`
 
 Read-Only:
 
@@ -182,22 +182,22 @@ Read-Only:
 - `system_id_mac` (String)
 
 
-<a id="nestedatt--items--status--members_1"></a>
-### Nested Schema for `items.status.members_1`
+<a id="nestedatt--items--status--members"></a>
+### Nested Schema for `items.status.members`
 
 Read-Only:
 
 - `enabled` (Boolean) The administrative status of this member.
 - `interface` (String) The name of the interface in normalized format.
 - `last_change` (String) Indicates when this member last changed state.
-- `neighbors` (Attributes List) List of discovered neighbors on this member. (see [below for nested schema](#nestedatt--items--status--members_1--neighbors))
+- `neighbors` (Attributes List) List of discovered neighbors on this member. (see [below for nested schema](#nestedatt--items--status--members--neighbors))
 - `node` (String) The node on which the interface is configured.
 - `node_interface` (String) Node specific interface name, for example "ethernet-1/1", "1/1/c1/1".
 - `operational_state` (String) Indicates the current operational state of this member.
 - `speed` (String) Indicates the operational speed of the member.
 
-<a id="nestedatt--items--status--members_1--neighbors"></a>
-### Nested Schema for `items.status.members_1.neighbors`
+<a id="nestedatt--items--status--members--neighbors"></a>
+### Nested Schema for `items.status.members.neighbors`
 
 Read-Only:
 
