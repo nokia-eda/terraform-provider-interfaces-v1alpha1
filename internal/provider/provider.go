@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -20,16 +19,16 @@ import (
 
 const (
 	// Environment variables
-	ENV_EDA_BASE_URL        = "EDA_BASE_URL"
-	ENV_KC_REALM            = "KC_REALM"
-	ENV_KC_CLIENT_ID        = "KC_CLIENT_ID"
-	ENV_KC_USERNAME         = "KC_USERNAME"
-	ENV_KC_PASSWORD         = "KC_PASSWORD"
-	ENV_EDA_CLIENT_ID       = "EDA_CLIENT_ID"
-	ENV_EDA_CLIENT_SECRET   = "EDA_CLIENT_SECRET"
-	ENV_EDA_REALM           = "EDA_REALM"
-	ENV_EDA_USERNAME        = "EDA_USERNAME"
-	ENV_EDA_PASSWORD        = "EDA_PASSWORD"
+	ENV_EDA_BASE_URL        = "BASE_URL"
+	ENV_KC_REALM            = "KEYCLOAK_MASTER_REALM"
+	ENV_KC_CLIENT_ID        = "KEYCLOAK_ADMIN_CLIENT_ID"
+	ENV_KC_USERNAME         = "KEYCLOAK_ADMIN_USERNAME"
+	ENV_KC_PASSWORD         = "KEYCLOAK_ADMIN_PASSWORD"
+	ENV_EDA_CLIENT_ID       = "CLIENT_ID"
+	ENV_EDA_CLIENT_SECRET   = "CLIENT_SECRET"
+	ENV_EDA_REALM           = "REALM"
+	ENV_EDA_USERNAME        = "USERNAME"
+	ENV_EDA_PASSWORD        = "PASSWORD"
 	ENV_TLS_SKIP_VERIFY     = "TLS_SKIP_VERIFY"
 	ENV_REST_DEBUG          = "REST_DEBUG"
 	ENV_REST_TIMEOUT        = "REST_TIMEOUT"
@@ -62,15 +61,15 @@ type interfacesProvider struct {
 
 type providerModel struct {
 	BaseURL           types.String `tfsdk:"base_url"`
-	KcUsername        types.String `tfsdk:"kc_username"`
-	KcPassword        types.String `tfsdk:"kc_password"`
-	KcRealm           types.String `tfsdk:"kc_realm"`
-	KcClientID        types.String `tfsdk:"kc_client_id"`
-	EdaUsername       types.String `tfsdk:"eda_username"`
-	EdaPassword       types.String `tfsdk:"eda_password"`
-	EdaRealm          types.String `tfsdk:"eda_realm"`
-	EdaClientID       types.String `tfsdk:"eda_client_id"`
-	EdaClientSecret   types.String `tfsdk:"eda_client_secret"`
+	KcRealm           types.String `tfsdk:"keycloak_master_realm"`
+	KcClientID        types.String `tfsdk:"keycloak_admin_client_id"`
+	KcUsername        types.String `tfsdk:"keycloak_admin_username"`
+	KcPassword        types.String `tfsdk:"keycloak_admin_password"`
+	EdaRealm          types.String `tfsdk:"realm"`
+	EdaClientID       types.String `tfsdk:"client_id"`
+	EdaClientSecret   types.String `tfsdk:"client_secret"`
+	EdaUsername       types.String `tfsdk:"username"`
+	EdaPassword       types.String `tfsdk:"password"`
 	TlsSkipVerify     types.Bool   `tfsdk:"tls_skip_verify"`
 	RestDebug         types.Bool   `tfsdk:"rest_debug"`
 	RestTimeout       types.String `tfsdk:"rest_timeout"`
@@ -85,43 +84,43 @@ func (p *interfacesProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				Description: "Base URL",
 				Optional:    true,
 			},
-			"kc_username": schema.StringAttribute{
+			"keycloak_master_realm": schema.StringAttribute{
+				Description: "Keycloak Realm",
+				Optional:    true,
+			},
+			"keycloak_admin_client_id": schema.StringAttribute{
+				Description: "Keycloak Client ID",
+				Optional:    true,
+			},
+			"keycloak_admin_username": schema.StringAttribute{
 				Description: "Keycloak Username",
 				Optional:    true,
 			},
-			"kc_password": schema.StringAttribute{
+			"keycloak_admin_password": schema.StringAttribute{
 				Description: "Keycloak Password",
 				Optional:    true,
 				Sensitive:   true,
 			},
-			"kc_realm": schema.StringAttribute{
-				Description: "Keycloak Realm",
-				Optional:    true,
-			},
-			"kc_client_id": schema.StringAttribute{
-				Description: "Keycloak Client ID",
-				Optional:    true,
-			},
-			"eda_username": schema.StringAttribute{
-				Description: "EDA Username",
-				Optional:    true,
-			},
-			"eda_password": schema.StringAttribute{
-				Description: "EDA Password",
-				Optional:    true,
-				Sensitive:   true,
-			},
-			"eda_realm": schema.StringAttribute{
+			"realm": schema.StringAttribute{
 				Description: "EDA Realm",
 				Optional:    true,
 			},
-			"eda_client_id": schema.StringAttribute{
+			"client_id": schema.StringAttribute{
 				Description: "EDA Client ID",
 				Optional:    true,
 			},
-			"eda_client_secret": schema.StringAttribute{
+			"client_secret": schema.StringAttribute{
 				Description: "EDA Client Secret",
 				Optional:    true,
+			},
+			"username": schema.StringAttribute{
+				Description: "EDA Username",
+				Optional:    true,
+			},
+			"password": schema.StringAttribute{
+				Description: "EDA Password",
+				Optional:    true,
+				Sensitive:   true,
 			},
 			"tls_skip_verify": schema.BoolAttribute{
 				Description: "TLS skip verify",
@@ -171,10 +170,10 @@ func (p *interfacesProvider) Configure(ctx context.Context, req provider.Configu
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Info(ctx, "Configure()::Provider config", map[string]any{"config": spew.Sdump(config)})
+	tflog.Info(ctx, "Configure()::Provider config", map[string]any{"config": config.String()})
 
 	// Create a new EDA ApiService client using the configuration values
-	client, err := apiclient.NewEdaApiClient(&config)
+	client, err := apiclient.NewEdaApiClient(ctx, &config)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to Create EDA API Client",
@@ -259,8 +258,6 @@ func (p *interfacesProvider) DataSources(ctx context.Context) []func() datasourc
 		NewCheckInterfacesListDataSource,
 		NewInterfaceDataSource,
 		NewInterfaceListDataSource,
-		NewInterfaceStateDataSource,
-		NewInterfaceStateListDataSource,
 		NewResourceListDataSource,
 		NewWorkflowGetInputsRespElemDataSource,
 	}
@@ -269,7 +266,7 @@ func (p *interfacesProvider) DataSources(ctx context.Context) []func() datasourc
 func (p *interfacesProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewBreakoutResource,
+		NewCheckInterfacesResource,
 		NewInterfaceResource,
-		NewInterfaceStateResource,
 	}
 }

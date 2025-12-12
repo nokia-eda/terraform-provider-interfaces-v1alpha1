@@ -5,14 +5,13 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log/slog"
-	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/eda/rest"
-	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/eda/utils"
 )
 
 const (
@@ -55,7 +54,7 @@ type EdaApiClient struct {
 	edaCred       *clientCredentials
 	keyCloakGrant *grant
 	edaGrant      *grant
-	logger        *slog.Logger
+	logCtx        context.Context
 }
 
 type Config struct {
@@ -76,22 +75,27 @@ type Config struct {
 	RestRetryInterval time.Duration `json:"restRetryInterval"`
 }
 
-func NewEdaApiClient(cfg *Config) (*EdaApiClient, error) {
-	// Create a default logger with LOG_LEVEL set to info
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: utils.GetLogLevel().Level(),
-	}))
-	return NewEdaApiClientWithLogger(cfg, logger)
+func (cfg *Config) String() string {
+	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "baseURL", cfg.BaseURL))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "kcUsername", cfg.KcUsername))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "kcRealm", cfg.KcRealm))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "kcClientId", cfg.KcClientID))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "edaUsername", cfg.EdaUsername))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "edaRealm", cfg.EdaRealm))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "edaClientId", cfg.EdaClientID))
+	sb.WriteString(fmt.Sprintf("%s: %t, ", "tlsSkipVerify", cfg.TlsSkipVerify))
+	sb.WriteString(fmt.Sprintf("%s: %t, ", "restDebug", cfg.RestDebug))
+	sb.WriteString(fmt.Sprintf("%s: %s, ", "restTimeout", cfg.RestTimeout))
+	sb.WriteString(fmt.Sprintf("%s: %d, ", "restRetries", cfg.RestRetries))
+	sb.WriteString(fmt.Sprintf("%s: %s", "restRetryInterval", cfg.RestRetryInterval))
+	return sb.String()
 }
 
-func NewEdaApiClientWithLogger(cfg *Config, logger *slog.Logger) (*EdaApiClient, error) {
+func NewEdaApiClient(logCtx context.Context, cfg *Config) (*EdaApiClient, error) {
 	if cfg == nil {
 		return nil, errors.New("config cannot be nil")
 	}
-	if logger == nil {
-		return nil, errors.New("logger cannot be nil")
-	}
-
 	client := &EdaApiClient{
 		cfg: cfg,
 		edaCred: &clientCredentials{
@@ -102,7 +106,7 @@ func NewEdaApiClientWithLogger(cfg *Config, logger *slog.Logger) (*EdaApiClient,
 		},
 		keyCloakGrant: &grant{},
 		edaGrant:      &grant{},
-		logger:        logger,
+		logCtx:        logCtx,
 	}
 	client.restClient = rest.CreateApiClient().
 		WithBaseURL(cfg.BaseURL).
@@ -128,41 +132,74 @@ func (c *EdaApiClient) getEdaAccessToken() (string, error) {
 	return c.getAccessToken(c.edaCred, c.edaGrant)
 }
 
+// Attempt login with retries and exponential backoff
+func (c *EdaApiClient) login(authUrl string, oauthBody map[string]string, grnt *grant) error {
+	tflog.Trace(c.logCtx, "login()", map[string]any{"authUrl": authUrl, "oauthBody": fmt.Sprintf("%v", oauthBody)})
+	var resp *resty.Response
+	var err error
+	maxRetries := 5
+	baseDelay := time.Second
+
+	for attempt := range maxRetries {
+		resp, err = c.restClient.DoLogin(authUrl, oauthBody, grnt)
+		if err == nil && !resp.IsError() {
+			timestamp := time.Now()
+			grnt.timestamp = &timestamp
+			tflog.Info(c.logCtx, "login()", map[string]any{"authUrl": authUrl, "status": resp.Status(),
+				"resp": resp.String(), "timeTaken": resp.Time().String()})
+			return nil
+		}
+
+		// Log the error and response for debugging
+		tflog.Error(c.logCtx, "Login attempt failed", map[string]any{
+			"attempt": attempt + 1,
+			"error":   err,
+			"status":  resp.Status(),
+			"body":    resp.String(),
+		})
+
+		// Exponential backoff before the next retry
+		if attempt < maxRetries-1 { // Don’t sleep after last attempt
+			time.Sleep(baseDelay * (1 << attempt))
+		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("login failed after %d attempts: %w", maxRetries, err)
+	}
+	return fmt.Errorf("login failed after %d attempts: %s", maxRetries, resp.String())
+}
+
 func (c *EdaApiClient) getAccessToken(cred *clientCredentials, grnt *grant) (string, error) {
 	c.tokenLock.Lock()
 	defer c.tokenLock.Unlock()
 
 	expired := false
-	var resp *resty.Response
-	var err error
 	if grnt.timestamp != nil && grnt.ExpiresInSecs != 0 {
 		elapsed := time.Since(*grnt.timestamp).Seconds()
-		c.logger.Debug("getAccessToken()", "authUrl", cred.authUrl, "timeElapsed", elapsed)
+		tflog.Debug(c.logCtx, "getAccessToken()", map[string]any{"authUrl": cred.authUrl, "timeElapsed": elapsed})
 		expired = elapsed > grnt.ExpiresInSecs
 	}
-	c.logger.Debug("getAccessToken()", "authUrl", cred.authUrl,
-		"grantExpired", expired, "accessToken", grnt.AccessToken, "refreshToken", grnt.RefreshToken)
+	tflog.Trace(c.logCtx, "getAccessToken()", map[string]any{"authUrl": cred.authUrl,
+		"grantExpired": expired, "accessToken": grnt.AccessToken, "refreshToken": grnt.RefreshToken})
 
 	if !expired && grnt.AccessToken != "" {
-		c.logger.Debug("getAccessToken()", "authUrl", cred.authUrl, "existingToken", grnt.AccessToken)
+		tflog.Trace(c.logCtx, "getAccessToken()", map[string]any{"authUrl": cred.authUrl, "existingToken": grnt.AccessToken})
 		return grnt.AccessToken, nil
 	}
+	var err error
 	if expired && grnt.RefreshToken != "" {
-		resp, err = c.restClient.DoLogin(cred.authUrl, c.getOauthBody(cred, grnt.RefreshToken), grnt)
+		err = c.login(cred.authUrl, c.getOauthBody(cred, grnt.RefreshToken), grnt)
 	} else {
-		resp, err = c.restClient.DoLogin(cred.authUrl, c.getOauthBody(cred, ""), grnt)
+		err = c.login(cred.authUrl, c.getOauthBody(cred, ""), grnt)
 	}
 	if err != nil {
 		return "", err
 	}
-	c.logger.Debug("getAccessToken()", "authUrl", cred.authUrl, "status", resp.Status(),
-		"resp", resp.String(), "timeTaken", resp.Time().String())
-	if resp.IsError() {
-		return "", errors.New(resp.String())
+	if grnt.AccessToken == "" {
+		return "", fmt.Errorf("access token is empty")
 	}
-	timestamp := time.Now()
-	grnt.timestamp = &timestamp
-
+	tflog.Trace(c.logCtx, "getAccessToken()", map[string]any{"authUrl": cred.authUrl, "newToken": grnt.AccessToken})
 	return grnt.AccessToken, nil
 }
 
@@ -200,7 +237,9 @@ func (c *EdaApiClient) getClientSecret(id string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	c.logger.Debug("getClientSecret()", "status", resp.Status(), "result", result)
+	tflog.Info(c.logCtx, "getClientSecret()", map[string]any{"url": CLIENT_URL, "status": resp.Status(),
+		"resp": resp.String(), "timeTaken": resp.Time().String()})
+
 	if len(result) == 0 {
 		return "", fmt.Errorf("client not found: %s", id)
 	}
@@ -208,7 +247,7 @@ func (c *EdaApiClient) getClientSecret(id string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("client secret not found for client: %s", id)
 	}
-	c.logger.Debug("getClientSecret()", "secret", secret)
+	tflog.Trace(c.logCtx, "getClientSecret()", map[string]any{"secret": secret})
 	return secret.(string), nil
 }
 
@@ -238,18 +277,20 @@ func (c *EdaApiClient) Execute(ctx context.Context, pathUrl, method string,
 	if err != nil {
 		return err
 	}
+	tflog.Debug(c.logCtx, "Invoking DoExecute()::"+method+" "+pathUrl, map[string]any{
+		"pathParams":  pathParams,
+		"queryParams": queryParams,
+	})
 	resp, err := c.restClient.DoExecute(method, pathUrl, accessToken, body, result, pathParams, queryParams, nil)
 	if err != nil {
 		return err
 	}
-	c.logger.Info("execute()::"+method+" "+pathUrl,
-		"pathParams", pathParams,
-		"queryParams", queryParams,
-		"status", resp.Status(),
-		"timeTaken", resp.Time().String(),
-	)
+	tflog.Debug(c.logCtx, "After DoExecute()::"+method+" "+pathUrl, map[string]any{
+		"status":    resp.Status(),
+		"timeTaken": resp.Time().String(),
+	})
 	if resp.IsError() {
-		return fmt.Errorf(resp.Status(), resp.String())
+		return fmt.Errorf("%s %s", resp.Status(), resp.String())
 	}
 	return nil
 }

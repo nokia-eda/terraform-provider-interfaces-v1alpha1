@@ -93,9 +93,55 @@
                         }
                     },
                     {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "name": "api_version",
                         "string": {
                             "computed_optional_required": "computed"
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
                         }
                     },
                     {
@@ -181,7 +227,7 @@
                                         "element_type": {
                                             "string": {}
                                         },
-                                        "description": "TopoNode where the parent interfaces are to be broken out."
+                                        "description": "Label selector to select nodes on which to configure the breakout interfaces. Either Nodes or NodeSelector must have at least one value set."
                                     }
                                 },
                                 {
@@ -231,6 +277,13 @@
                         }
                     },
                     {
+                        "name": "labelselector",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "description": "Deprecated: a label selector string to filter the results based on CR labels"
+                        }
+                    },
+                    {
                         "name": "namespace",
                         "string": {
                             "computed_optional_required": "required",
@@ -250,9 +303,55 @@
                             "nested_object": {
                                 "attributes": [
                                     {
+                                        "name": "alarms",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "critical",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "major",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "minor",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "warning",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
                                         "name": "api_version",
                                         "string": {
                                             "computed_optional_required": "computed"
+                                        }
+                                    },
+                                    {
+                                        "name": "deviations",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "count",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
                                         }
                                     },
                                     {
@@ -338,7 +437,7 @@
                                                         "element_type": {
                                                             "string": {}
                                                         },
-                                                        "description": "TopoNode where the parent interfaces are to be broken out."
+                                                        "description": "Label selector to select nodes on which to configure the breakout interfaces. Either Nodes or NodeSelector must have at least one value set."
                                                     }
                                                 },
                                                 {
@@ -391,9 +490,55 @@
                         }
                     },
                     {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "name": "api_version",
                         "string": {
                             "computed_optional_required": "computed"
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
                         }
                     },
                     {
@@ -488,13 +633,6 @@
                             "computed_optional_required": "computed",
                             "attributes": [
                                 {
-                                    "name": "id",
-                                    "int64": {
-                                        "computed_optional_required": "computed",
-                                        "description": "Id"
-                                    }
-                                },
-                                {
                                     "name": "result",
                                     "string": {
                                         "computed_optional_required": "computed",
@@ -534,6 +672,13 @@
                         }
                     },
                     {
+                        "name": "labelselector",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "description": "Deprecated: a label selector string to filter the results based on CR labels"
+                        }
+                    },
+                    {
                         "name": "namespace",
                         "string": {
                             "computed_optional_required": "required",
@@ -553,9 +698,55 @@
                             "nested_object": {
                                 "attributes": [
                                     {
+                                        "name": "alarms",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "critical",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "major",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "minor",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "warning",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
                                         "name": "api_version",
                                         "string": {
                                             "computed_optional_required": "computed"
+                                        }
+                                    },
+                                    {
+                                        "name": "deviations",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "count",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
                                         }
                                     },
                                     {
@@ -650,13 +841,6 @@
                                             "computed_optional_required": "computed",
                                             "attributes": [
                                                 {
-                                                    "name": "id",
-                                                    "int64": {
-                                                        "computed_optional_required": "computed",
-                                                        "description": "Id"
-                                                    }
-                                                },
-                                                {
                                                     "name": "result",
                                                     "string": {
                                                         "computed_optional_required": "computed",
@@ -706,9 +890,55 @@
                         }
                     },
                     {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "name": "api_version",
                         "string": {
                             "computed_optional_required": "computed"
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed"
+                                    }
+                                }
+                            ]
                         }
                     },
                     {
@@ -794,6 +1024,75 @@
                                         "computed_optional_required": "optional",
                                         "attributes": [
                                             {
+                                                "name": "crc_monitor",
+                                                "single_nested": {
+                                                    "computed_optional_required": "optional",
+                                                    "attributes": [
+                                                        {
+                                                            "name": "enabled",
+                                                            "bool": {
+                                                                "computed_optional_required": "optional",
+                                                                "description": "Enables CRC monitoring on the interface."
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "signal_degrade",
+                                                            "single_nested": {
+                                                                "computed_optional_required": "optional",
+                                                                "attributes": [
+                                                                    {
+                                                                        "name": "exponent",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "optional",
+                                                                            "description": "Threshold exponent for the signal degrade condition."
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "multiplier",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "optional",
+                                                                            "description": "Threshold multiplier for the signal degrade condition."
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "description": "Signal degrade threshold configuration.\neda:ui:title=\"Signal Degrade\""
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "signal_failure",
+                                                            "single_nested": {
+                                                                "computed_optional_required": "optional",
+                                                                "attributes": [
+                                                                    {
+                                                                        "name": "exponent",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "optional",
+                                                                            "description": "Threshold exponent for the signal failure condition."
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "multiplier",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "optional",
+                                                                            "description": "Threshold multiplier for the signal failure condition."
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "description": "Signal failure threshold configuration.\neda:ui:title=\"Signal Failure\""
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "window_size_sec",
+                                                            "int64": {
+                                                                "computed_optional_required": "optional",
+                                                                "description": "Sliding window size over which CRC errors are measured, in number of seconds."
+                                                            }
+                                                        }
+                                                    ],
+                                                    "description": "Configuration of CRC monitoring on the interface."
+                                                }
+                                            },
+                                            {
                                                 "name": "fec",
                                                 "string": {
                                                     "computed_optional_required": "optional",
@@ -812,6 +1111,13 @@
                                                 "int64": {
                                                     "computed_optional_required": "optional",
                                                     "description": "The hold-time up behavior is triggered with any event that tries to bring up the ethernet interface.  While the hold-time up is running, the transceiver laser will be enabled, however the higher layers will not be notified that the interface is operationally up until the timer expires.  Units in milliseconds."
+                                                }
+                                            },
+                                            {
+                                                "name": "loopback_mode",
+                                                "string": {
+                                                    "computed_optional_required": "optional",
+                                                    "description": "Enable dataplane loopback on the interface."
                                                 }
                                             },
                                             {
@@ -1273,6 +1579,13 @@
                         }
                     },
                     {
+                        "name": "labelselector",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "description": "Deprecated: a label selector string to filter the results based on CR labels"
+                        }
+                    },
+                    {
                         "name": "namespace",
                         "string": {
                             "computed_optional_required": "required",
@@ -1292,9 +1605,55 @@
                             "nested_object": {
                                 "attributes": [
                                     {
+                                        "name": "alarms",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "critical",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "major",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "minor",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                },
+                                                {
+                                                    "name": "warning",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
                                         "name": "api_version",
                                         "string": {
                                             "computed_optional_required": "computed"
+                                        }
+                                    },
+                                    {
+                                        "name": "deviations",
+                                        "single_nested": {
+                                            "computed_optional_required": "computed",
+                                            "attributes": [
+                                                {
+                                                    "name": "count",
+                                                    "int64": {
+                                                        "computed_optional_required": "computed"
+                                                    }
+                                                }
+                                            ]
                                         }
                                     },
                                     {
@@ -1380,6 +1739,75 @@
                                                         "computed_optional_required": "optional",
                                                         "attributes": [
                                                             {
+                                                                "name": "crc_monitor",
+                                                                "single_nested": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "attributes": [
+                                                                        {
+                                                                            "name": "enabled",
+                                                                            "bool": {
+                                                                                "computed_optional_required": "optional",
+                                                                                "description": "Enables CRC monitoring on the interface."
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "signal_degrade",
+                                                                            "single_nested": {
+                                                                                "computed_optional_required": "optional",
+                                                                                "attributes": [
+                                                                                    {
+                                                                                        "name": "exponent",
+                                                                                        "int64": {
+                                                                                            "computed_optional_required": "optional",
+                                                                                            "description": "Threshold exponent for the signal degrade condition."
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        "name": "multiplier",
+                                                                                        "int64": {
+                                                                                            "computed_optional_required": "optional",
+                                                                                            "description": "Threshold multiplier for the signal degrade condition."
+                                                                                        }
+                                                                                    }
+                                                                                ],
+                                                                                "description": "Signal degrade threshold configuration.\neda:ui:title=\"Signal Degrade\""
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "signal_failure",
+                                                                            "single_nested": {
+                                                                                "computed_optional_required": "optional",
+                                                                                "attributes": [
+                                                                                    {
+                                                                                        "name": "exponent",
+                                                                                        "int64": {
+                                                                                            "computed_optional_required": "optional",
+                                                                                            "description": "Threshold exponent for the signal failure condition."
+                                                                                        }
+                                                                                    },
+                                                                                    {
+                                                                                        "name": "multiplier",
+                                                                                        "int64": {
+                                                                                            "computed_optional_required": "optional",
+                                                                                            "description": "Threshold multiplier for the signal failure condition."
+                                                                                        }
+                                                                                    }
+                                                                                ],
+                                                                                "description": "Signal failure threshold configuration.\neda:ui:title=\"Signal Failure\""
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "name": "window_size_sec",
+                                                                            "int64": {
+                                                                                "computed_optional_required": "optional",
+                                                                                "description": "Sliding window size over which CRC errors are measured, in number of seconds."
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "description": "Configuration of CRC monitoring on the interface."
+                                                                }
+                                                            },
+                                                            {
                                                                 "name": "fec",
                                                                 "string": {
                                                                     "computed_optional_required": "optional",
@@ -1398,6 +1826,13 @@
                                                                 "int64": {
                                                                     "computed_optional_required": "optional",
                                                                     "description": "The hold-time up behavior is triggered with any event that tries to bring up the ethernet interface.  While the hold-time up is running, the transceiver laser will be enabled, however the higher layers will not be notified that the interface is operationally up until the timer expires.  Units in milliseconds."
+                                                                }
+                                                            },
+                                                            {
+                                                                "name": "loopback_mode",
+                                                                "string": {
+                                                                    "computed_optional_required": "optional",
+                                                                    "description": "Enable dataplane loopback on the interface."
                                                                 }
                                                             },
                                                             {
@@ -1844,409 +2279,6 @@
             }
         },
         {
-            "name": "interface_state",
-            "schema": {
-                "attributes": [
-                    {
-                        "name": "name",
-                        "string": {
-                            "computed_optional_required": "required",
-                            "description": "name of the InterfaceState"
-                        }
-                    },
-                    {
-                        "name": "hash",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "resource content will be returned as it was at the time of this git hash"
-                        }
-                    },
-                    {
-                        "name": "namespace",
-                        "string": {
-                            "computed_optional_required": "required",
-                            "description": "the namespace scope in which to operate"
-                        }
-                    },
-                    {
-                        "name": "api_version",
-                        "string": {
-                            "computed_optional_required": "computed"
-                        }
-                    },
-                    {
-                        "name": "kind",
-                        "string": {
-                            "computed_optional_required": "computed"
-                        }
-                    },
-                    {
-                        "name": "metadata",
-                        "single_nested": {
-                            "computed_optional_required": "computed",
-                            "attributes": [
-                                {
-                                    "name": "annotations",
-                                    "map": {
-                                        "computed_optional_required": "computed",
-                                        "element_type": {
-                                            "string": {}
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "labels",
-                                    "map": {
-                                        "computed_optional_required": "computed",
-                                        "element_type": {
-                                            "string": {}
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "name",
-                                    "string": {
-                                        "computed_optional_required": "computed"
-                                    }
-                                },
-                                {
-                                    "name": "namespace",
-                                    "string": {
-                                        "computed_optional_required": "computed"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spec",
-                        "single_nested": {
-                            "computed_optional_required": "optional",
-                            "attributes": [
-                                {
-                                    "name": "enabled",
-                                    "bool": {
-                                        "computed_optional_required": "optional",
-                                        "description": "Enable or disable the interface."
-                                    }
-                                },
-                                {
-                                    "name": "lag",
-                                    "single_nested": {
-                                        "computed_optional_required": "optional",
-                                        "attributes": [
-                                            {
-                                                "name": "admin_key",
-                                                "int64": {
-                                                    "computed_optional_required": "optional"
-                                                }
-                                            },
-                                            {
-                                                "name": "system_id_mac",
-                                                "string": {
-                                                    "computed_optional_required": "optional"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "members",
-                                    "list_nested": {
-                                        "computed_optional_required": "optional",
-                                        "nested_object": {
-                                            "attributes": [
-                                                {
-                                                    "name": "aggregate_id",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "LAG interface with which this interface is associated"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "enabled",
-                                                    "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable or disable this member."
-                                                    }
-                                                },
-                                                {
-                                                    "name": "interface",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Normalized interface name"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "node",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Reference to the TopoNode on which this member resides"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "node_interface",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Node specific interface name, for example \"ethernet-1/1\", \"1/1/c1/1\""
-                                                    }
-                                                },
-                                                {
-                                                    "name": "operating_system",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "The operating system of the TopoNode on which this member resides"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "version",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "The version of the TopoNode on which this interface resides"
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "description": "List of members on which to monitor state for"
-                                    }
-                                },
-                                {
-                                    "name": "role",
-                                    "string": {
-                                        "computed_optional_required": "optional",
-                                        "description": "Role of this interface. This is used to calculate severity of alarms. [default=\"edge\"]"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "single_nested": {
-                            "computed_optional_required": "computed",
-                            "description": "InterfaceStateStatus defines the observed state of Interface"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "interface_state_list",
-            "schema": {
-                "attributes": [
-                    {
-                        "name": "fields",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "a comma-separated list of resource fields to fetch/return.  If unspecified, all fields are fetched.  If empty, only key-fields are fetched."
-                        }
-                    },
-                    {
-                        "name": "filter",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "an EQL \"where\" expression that will be used to filter the set of resources returned."
-                        }
-                    },
-                    {
-                        "name": "label_selector",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "a label selector string to filter the results based on CR labels"
-                        }
-                    },
-                    {
-                        "name": "namespace",
-                        "string": {
-                            "computed_optional_required": "required",
-                            "description": "the namespace scope in which to operate"
-                        }
-                    },
-                    {
-                        "name": "api_version",
-                        "string": {
-                            "computed_optional_required": "computed"
-                        }
-                    },
-                    {
-                        "name": "items",
-                        "list_nested": {
-                            "computed_optional_required": "computed",
-                            "nested_object": {
-                                "attributes": [
-                                    {
-                                        "name": "api_version",
-                                        "string": {
-                                            "computed_optional_required": "computed"
-                                        }
-                                    },
-                                    {
-                                        "name": "kind",
-                                        "string": {
-                                            "computed_optional_required": "computed"
-                                        }
-                                    },
-                                    {
-                                        "name": "metadata",
-                                        "single_nested": {
-                                            "computed_optional_required": "computed",
-                                            "attributes": [
-                                                {
-                                                    "name": "annotations",
-                                                    "map": {
-                                                        "computed_optional_required": "computed",
-                                                        "element_type": {
-                                                            "string": {}
-                                                        }
-                                                    }
-                                                },
-                                                {
-                                                    "name": "labels",
-                                                    "map": {
-                                                        "computed_optional_required": "computed",
-                                                        "element_type": {
-                                                            "string": {}
-                                                        }
-                                                    }
-                                                },
-                                                {
-                                                    "name": "name",
-                                                    "string": {
-                                                        "computed_optional_required": "computed"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "namespace",
-                                                    "string": {
-                                                        "computed_optional_required": "computed"
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "name": "spec",
-                                        "single_nested": {
-                                            "computed_optional_required": "optional",
-                                            "attributes": [
-                                                {
-                                                    "name": "enabled",
-                                                    "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable or disable the interface."
-                                                    }
-                                                },
-                                                {
-                                                    "name": "lag",
-                                                    "single_nested": {
-                                                        "computed_optional_required": "optional",
-                                                        "attributes": [
-                                                            {
-                                                                "name": "admin_key",
-                                                                "int64": {
-                                                                    "computed_optional_required": "optional"
-                                                                }
-                                                            },
-                                                            {
-                                                                "name": "system_id_mac",
-                                                                "string": {
-                                                                    "computed_optional_required": "optional"
-                                                                }
-                                                            }
-                                                        ]
-                                                    }
-                                                },
-                                                {
-                                                    "name": "members",
-                                                    "list_nested": {
-                                                        "computed_optional_required": "optional",
-                                                        "nested_object": {
-                                                            "attributes": [
-                                                                {
-                                                                    "name": "aggregate_id",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "LAG interface with which this interface is associated"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "enabled",
-                                                                    "bool": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "Enable or disable this member."
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "interface",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "Normalized interface name"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "node",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "Reference to the TopoNode on which this member resides"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "node_interface",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "Node specific interface name, for example \"ethernet-1/1\", \"1/1/c1/1\""
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "operating_system",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "The operating system of the TopoNode on which this member resides"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "name": "version",
-                                                                    "string": {
-                                                                        "computed_optional_required": "optional",
-                                                                        "description": "The version of the TopoNode on which this interface resides"
-                                                                    }
-                                                                }
-                                                            ]
-                                                        },
-                                                        "description": "List of members on which to monitor state for"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "role",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Role of this interface. This is used to calculate severity of alarms. [default=\"edge\"]"
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "name": "status",
-                                        "single_nested": {
-                                            "computed_optional_required": "computed",
-                                            "description": "InterfaceStateStatus defines the observed state of Interface"
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    {
-                        "name": "kind",
-                        "string": {
-                            "computed_optional_required": "computed"
-                        }
-                    }
-                ]
-            }
-        },
-        {
             "name": "resource_list",
             "schema": {
                 "attributes": [
@@ -2400,6 +2432,38 @@
             "schema": {
                 "attributes": [
                     {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
                         "name": "api_version",
                         "string": {
                             "computed_optional_required": "computed_optional",
@@ -2418,6 +2482,20 @@
                                             }
                                         ],
                                         "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^interfaces\\\\.eda\\\\.nokia\\\\.com/v1alpha1$\"), \"\")"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
                                     }
                                 }
                             ]
@@ -2547,7 +2625,7 @@
                                 {
                                     "name": "node",
                                     "list": {
-                                        "computed_optional_required": "required",
+                                        "computed_optional_required": "optional",
                                         "element_type": {
                                             "string": {}
                                         },
@@ -2561,7 +2639,7 @@
                                         "element_type": {
                                             "string": {}
                                         },
-                                        "description": "TopoNode where the parent interfaces are to be broken out."
+                                        "description": "Label selector to select nodes on which to configure the breakout interfaces. Either Nodes or NodeSelector must have at least one value set."
                                     }
                                 },
                                 {
@@ -2612,9 +2690,41 @@
             }
         },
         {
-            "name": "interface",
+            "name": "check_interfaces",
             "schema": {
                 "attributes": [
+                    {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     {
                         "name": "api_version",
                         "string": {
@@ -2634,6 +2744,256 @@
                                             }
                                         ],
                                         "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^interfaces\\\\.eda\\\\.nokia\\\\.com/v1alpha1$\"), \"\")"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "default": {
+                                "static": "CheckInterfaces"
+                            },
+                            "validators": [
+                                {
+                                    "custom": {
+                                        "imports": [
+                                            {
+                                                "path": "regexp"
+                                            },
+                                            {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                            }
+                                        ],
+                                        "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^CheckInterfaces$\"), \"\")"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "metadata",
+                        "single_nested": {
+                            "computed_optional_required": "required",
+                            "attributes": [
+                                {
+                                    "name": "annotations",
+                                    "map": {
+                                        "computed_optional_required": "computed_optional",
+                                        "element_type": {
+                                            "string": {}
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "labels",
+                                    "map": {
+                                        "computed_optional_required": "computed_optional",
+                                        "element_type": {
+                                            "string": {}
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "name",
+                                    "string": {
+                                        "computed_optional_required": "required",
+                                        "validators": [
+                                            {
+                                                "custom": {
+                                                    "imports": [
+                                                        {
+                                                            "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                                        }
+                                                    ],
+                                                    "schema_definition": "stringvalidator.LengthAtMost(253)"
+                                                }
+                                            },
+                                            {
+                                                "custom": {
+                                                    "imports": [
+                                                        {
+                                                            "path": "regexp"
+                                                        },
+                                                        {
+                                                            "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                                        }
+                                                    ],
+                                                    "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$\"), \"\")"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "name": "namespace",
+                                    "string": {
+                                        "computed_optional_required": "required"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "spec",
+                        "single_nested": {
+                            "computed_optional_required": "required",
+                            "attributes": [
+                                {
+                                    "name": "interface_selector",
+                                    "list": {
+                                        "computed_optional_required": "optional",
+                                        "element_type": {
+                                            "string": {}
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "node_selector",
+                                    "list": {
+                                        "computed_optional_required": "optional",
+                                        "element_type": {
+                                            "string": {}
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "nodes",
+                                    "list": {
+                                        "computed_optional_required": "optional",
+                                        "element_type": {
+                                            "string": {}
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "wait_for",
+                                    "int64": {
+                                        "computed_optional_required": "optional"
+                                    }
+                                }
+                            ],
+                            "description": "CheckInterfacesSpec defines the desired state of CheckInterfaces"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "result",
+                                    "string": {
+                                        "computed_optional_required": "computed_optional",
+                                        "description": "Aggregate result of the Flow"
+                                    }
+                                }
+                            ],
+                            "description": "CheckInterfacesStatus defines the observed state of CheckInterfaces"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "description": "name of the CheckInterfaces"
+                        }
+                    },
+                    {
+                        "name": "namespace",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "description": "the namespace scope in which to operate"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "interface",
+            "schema": {
+                "attributes": [
+                    {
+                        "name": "alarms",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "critical",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "major",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "minor",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                },
+                                {
+                                    "name": "warning",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "api_version",
+                        "string": {
+                            "computed_optional_required": "computed_optional",
+                            "default": {
+                                "static": "interfaces.eda.nokia.com/v1alpha1"
+                            },
+                            "validators": [
+                                {
+                                    "custom": {
+                                        "imports": [
+                                            {
+                                                "path": "regexp"
+                                            },
+                                            {
+                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                            }
+                                        ],
+                                        "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^interfaces\\\\.eda\\\\.nokia\\\\.com/v1alpha1$\"), \"\")"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "deviations",
+                        "single_nested": {
+                            "computed_optional_required": "computed_optional",
+                            "attributes": [
+                                {
+                                    "name": "count",
+                                    "int64": {
+                                        "computed_optional_required": "computed_optional"
                                     }
                                 }
                             ]
@@ -2783,6 +3143,135 @@
                                         "computed_optional_required": "optional",
                                         "attributes": [
                                             {
+                                                "name": "crc_monitor",
+                                                "single_nested": {
+                                                    "computed_optional_required": "optional",
+                                                    "attributes": [
+                                                        {
+                                                            "name": "enabled",
+                                                            "bool": {
+                                                                "computed_optional_required": "optional",
+                                                                "description": "Enables CRC monitoring on the interface."
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "signal_degrade",
+                                                            "single_nested": {
+                                                                "computed_optional_required": "optional",
+                                                                "attributes": [
+                                                                    {
+                                                                        "name": "exponent",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "required",
+                                                                            "description": "Threshold exponent for the signal degrade condition.",
+                                                                            "validators": [
+                                                                                {
+                                                                                    "custom": {
+                                                                                        "imports": [
+                                                                                            {
+                                                                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                                                                            }
+                                                                                        ],
+                                                                                        "schema_definition": "int64validator.Between(1, 9)"
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "multiplier",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "required",
+                                                                            "description": "Threshold multiplier for the signal degrade condition.",
+                                                                            "validators": [
+                                                                                {
+                                                                                    "custom": {
+                                                                                        "imports": [
+                                                                                            {
+                                                                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                                                                            }
+                                                                                        ],
+                                                                                        "schema_definition": "int64validator.Between(1, 9)"
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "description": "Signal degrade threshold configuration.\neda:ui:title=\"Signal Degrade\""
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "signal_failure",
+                                                            "single_nested": {
+                                                                "computed_optional_required": "optional",
+                                                                "attributes": [
+                                                                    {
+                                                                        "name": "exponent",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "required",
+                                                                            "description": "Threshold exponent for the signal failure condition.",
+                                                                            "validators": [
+                                                                                {
+                                                                                    "custom": {
+                                                                                        "imports": [
+                                                                                            {
+                                                                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                                                                            }
+                                                                                        ],
+                                                                                        "schema_definition": "int64validator.Between(1, 9)"
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "multiplier",
+                                                                        "int64": {
+                                                                            "computed_optional_required": "required",
+                                                                            "description": "Threshold multiplier for the signal failure condition.",
+                                                                            "validators": [
+                                                                                {
+                                                                                    "custom": {
+                                                                                        "imports": [
+                                                                                            {
+                                                                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                                                                            }
+                                                                                        ],
+                                                                                        "schema_definition": "int64validator.Between(1, 9)"
+                                                                                    }
+                                                                                }
+                                                                            ]
+                                                                        }
+                                                                    }
+                                                                ],
+                                                                "description": "Signal failure threshold configuration.\neda:ui:title=\"Signal Failure\""
+                                                            }
+                                                        },
+                                                        {
+                                                            "name": "window_size_sec",
+                                                            "int64": {
+                                                                "computed_optional_required": "optional",
+                                                                "description": "Sliding window size over which CRC errors are measured, in number of seconds.",
+                                                                "validators": [
+                                                                    {
+                                                                        "custom": {
+                                                                            "imports": [
+                                                                                {
+                                                                                    "path": "github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+                                                                                }
+                                                                            ],
+                                                                            "schema_definition": "int64validator.AtLeast(1)"
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        }
+                                                    ],
+                                                    "description": "Configuration of CRC monitoring on the interface."
+                                                }
+                                            },
+                                            {
                                                 "name": "fec",
                                                 "string": {
                                                     "computed_optional_required": "optional",
@@ -2834,6 +3323,25 @@
                                                                     }
                                                                 ],
                                                                 "schema_definition": "int64validator.Between(100, 86400000)"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "name": "loopback_mode",
+                                                "string": {
+                                                    "computed_optional_required": "optional",
+                                                    "description": "Enable dataplane loopback on the interface.",
+                                                    "validators": [
+                                                        {
+                                                            "custom": {
+                                                                "imports": [
+                                                                    {
+                                                                        "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+                                                                    }
+                                                                ],
+                                                                "schema_definition": "stringvalidator.OneOf(\n\"none\",\n\"facility\",\n\"terminal\",\n)"
                                                             }
                                                         }
                                                     ]
@@ -3559,262 +4067,6 @@
                         "string": {
                             "computed_optional_required": "computed_optional",
                             "description": "name of the Interface"
-                        }
-                    },
-                    {
-                        "name": "namespace",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "the namespace scope in which to operate"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "interface_state",
-            "schema": {
-                "attributes": [
-                    {
-                        "name": "api_version",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "default": {
-                                "static": "interfaces.eda.nokia.com/v1alpha1"
-                            },
-                            "validators": [
-                                {
-                                    "custom": {
-                                        "imports": [
-                                            {
-                                                "path": "regexp"
-                                            },
-                                            {
-                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-                                            }
-                                        ],
-                                        "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^interfaces\\\\.eda\\\\.nokia\\\\.com/v1alpha1$\"), \"\")"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "kind",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "default": {
-                                "static": "InterfaceState"
-                            },
-                            "validators": [
-                                {
-                                    "custom": {
-                                        "imports": [
-                                            {
-                                                "path": "regexp"
-                                            },
-                                            {
-                                                "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-                                            }
-                                        ],
-                                        "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^InterfaceState$\"), \"\")"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "metadata",
-                        "single_nested": {
-                            "computed_optional_required": "required",
-                            "attributes": [
-                                {
-                                    "name": "annotations",
-                                    "map": {
-                                        "computed_optional_required": "computed_optional",
-                                        "element_type": {
-                                            "string": {}
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "labels",
-                                    "map": {
-                                        "computed_optional_required": "computed_optional",
-                                        "element_type": {
-                                            "string": {}
-                                        }
-                                    }
-                                },
-                                {
-                                    "name": "name",
-                                    "string": {
-                                        "computed_optional_required": "required",
-                                        "validators": [
-                                            {
-                                                "custom": {
-                                                    "imports": [
-                                                        {
-                                                            "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-                                                        }
-                                                    ],
-                                                    "schema_definition": "stringvalidator.LengthAtMost(253)"
-                                                }
-                                            },
-                                            {
-                                                "custom": {
-                                                    "imports": [
-                                                        {
-                                                            "path": "regexp"
-                                                        },
-                                                        {
-                                                            "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-                                                        }
-                                                    ],
-                                                    "schema_definition": "stringvalidator.RegexMatches(regexp.MustCompile(\"^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$\"), \"\")"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "namespace",
-                                    "string": {
-                                        "computed_optional_required": "required"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "spec",
-                        "single_nested": {
-                            "computed_optional_required": "required",
-                            "attributes": [
-                                {
-                                    "name": "enabled",
-                                    "bool": {
-                                        "computed_optional_required": "optional",
-                                        "description": "Enable or disable the interface."
-                                    }
-                                },
-                                {
-                                    "name": "lag",
-                                    "single_nested": {
-                                        "computed_optional_required": "optional",
-                                        "attributes": [
-                                            {
-                                                "name": "admin_key",
-                                                "int64": {
-                                                    "computed_optional_required": "optional"
-                                                }
-                                            },
-                                            {
-                                                "name": "system_id_mac",
-                                                "string": {
-                                                    "computed_optional_required": "optional"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "name": "members",
-                                    "list_nested": {
-                                        "computed_optional_required": "required",
-                                        "nested_object": {
-                                            "attributes": [
-                                                {
-                                                    "name": "aggregate_id",
-                                                    "string": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "LAG interface with which this interface is associated"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "enabled",
-                                                    "bool": {
-                                                        "computed_optional_required": "optional",
-                                                        "description": "Enable or disable this member."
-                                                    }
-                                                },
-                                                {
-                                                    "name": "interface",
-                                                    "string": {
-                                                        "computed_optional_required": "required",
-                                                        "description": "Normalized interface name"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "node",
-                                                    "string": {
-                                                        "computed_optional_required": "required",
-                                                        "description": "Reference to the TopoNode on which this member resides"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "node_interface",
-                                                    "string": {
-                                                        "computed_optional_required": "required",
-                                                        "description": "Node specific interface name, for example \"ethernet-1/1\", \"1/1/c1/1\""
-                                                    }
-                                                },
-                                                {
-                                                    "name": "operating_system",
-                                                    "string": {
-                                                        "computed_optional_required": "required",
-                                                        "description": "The operating system of the TopoNode on which this member resides"
-                                                    }
-                                                },
-                                                {
-                                                    "name": "version",
-                                                    "string": {
-                                                        "computed_optional_required": "required",
-                                                        "description": "The version of the TopoNode on which this interface resides"
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "description": "List of members on which to monitor state for"
-                                    }
-                                },
-                                {
-                                    "name": "role",
-                                    "string": {
-                                        "computed_optional_required": "computed_optional",
-                                        "default": {
-                                            "static": "edge"
-                                        },
-                                        "description": "Role of this interface. This is used to calculate severity of alarms. [default=\"edge\"]",
-                                        "validators": [
-                                            {
-                                                "custom": {
-                                                    "imports": [
-                                                        {
-                                                            "path": "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-                                                        }
-                                                    ],
-                                                    "schema_definition": "stringvalidator.OneOf(\n\"isl\",\n\"edge\",\n\"loopback\",\n)"
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "single_nested": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "InterfaceStateStatus defines the observed state of Interface"
-                        }
-                    },
-                    {
-                        "name": "name",
-                        "string": {
-                            "computed_optional_required": "computed_optional",
-                            "description": "name of the InterfaceState"
                         }
                     },
                     {

@@ -27,7 +27,9 @@ description: |-
 
 ### Read-Only
 
+- `alarms` (Attributes) (see [below for nested schema](#nestedatt--alarms))
 - `api_version` (String)
+- `deviations` (Attributes) (see [below for nested schema](#nestedatt--deviations))
 - `kind` (String)
 - `metadata` (Attributes) (see [below for nested schema](#nestedatt--metadata))
 - `status` (Attributes) BreakoutStatus defines the observed state of Breakout (see [below for nested schema](#nestedatt--status))
@@ -40,8 +42,27 @@ Optional:
 - `channels` (Number) The number of breakout channels to create.
 - `interface` (List of String) A list of normalized parent interface/port.
 - `node` (List of String) Reference to a list of TopoNodes where the parent interfaces are to be broken out.
-- `node_selector` (List of String) TopoNode where the parent interfaces are to be broken out.
+- `node_selector` (List of String) Label selector to select nodes on which to configure the breakout interfaces. Either Nodes or NodeSelector must have at least one value set.
 - `speed` (String) The speed of each breakout channel.
+
+
+<a id="nestedatt--alarms"></a>
+### Nested Schema for `alarms`
+
+Read-Only:
+
+- `critical` (Number)
+- `major` (Number)
+- `minor` (Number)
+- `warning` (Number)
+
+
+<a id="nestedatt--deviations"></a>
+### Nested Schema for `deviations`
+
+Read-Only:
+
+- `count` (Number)
 
 
 <a id="nestedatt--metadata"></a>

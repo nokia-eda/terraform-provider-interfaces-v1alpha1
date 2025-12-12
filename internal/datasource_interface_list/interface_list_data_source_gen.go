@@ -36,7 +36,42 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 			"items": schema.ListNestedAttribute{
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
+						"alarms": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"critical": schema.Int64Attribute{
+									Computed: true,
+								},
+								"major": schema.Int64Attribute{
+									Computed: true,
+								},
+								"minor": schema.Int64Attribute{
+									Computed: true,
+								},
+								"warning": schema.Int64Attribute{
+									Computed: true,
+								},
+							},
+							CustomType: AlarmsType{
+								ObjectType: types.ObjectType{
+									AttrTypes: AlarmsValue{}.AttributeTypes(ctx),
+								},
+							},
+							Computed: true,
+						},
 						"api_version": schema.StringAttribute{
+							Computed: true,
+						},
+						"deviations": schema.SingleNestedAttribute{
+							Attributes: map[string]schema.Attribute{
+								"count": schema.Int64Attribute{
+									Computed: true,
+								},
+							},
+							CustomType: DeviationsType{
+								ObjectType: types.ObjectType{
+									AttrTypes: DeviationsValue{}.AttributeTypes(ctx),
+								},
+							},
 							Computed: true,
 						},
 						"kind": schema.StringAttribute{
@@ -90,6 +125,72 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 								},
 								"ethernet": schema.SingleNestedAttribute{
 									Attributes: map[string]schema.Attribute{
+										"crc_monitor": schema.SingleNestedAttribute{
+											Attributes: map[string]schema.Attribute{
+												"enabled": schema.BoolAttribute{
+													Optional:            true,
+													Description:         "Enables CRC monitoring on the interface.",
+													MarkdownDescription: "Enables CRC monitoring on the interface.",
+												},
+												"signal_degrade": schema.SingleNestedAttribute{
+													Attributes: map[string]schema.Attribute{
+														"exponent": schema.Int64Attribute{
+															Optional:            true,
+															Description:         "Threshold exponent for the signal degrade condition.",
+															MarkdownDescription: "Threshold exponent for the signal degrade condition.",
+														},
+														"multiplier": schema.Int64Attribute{
+															Optional:            true,
+															Description:         "Threshold multiplier for the signal degrade condition.",
+															MarkdownDescription: "Threshold multiplier for the signal degrade condition.",
+														},
+													},
+													CustomType: SignalDegradeType{
+														ObjectType: types.ObjectType{
+															AttrTypes: SignalDegradeValue{}.AttributeTypes(ctx),
+														},
+													},
+													Optional:            true,
+													Description:         "Signal degrade threshold configuration.\neda:ui:title=\"Signal Degrade\"",
+													MarkdownDescription: "Signal degrade threshold configuration.\neda:ui:title=\"Signal Degrade\"",
+												},
+												"signal_failure": schema.SingleNestedAttribute{
+													Attributes: map[string]schema.Attribute{
+														"exponent": schema.Int64Attribute{
+															Optional:            true,
+															Description:         "Threshold exponent for the signal failure condition.",
+															MarkdownDescription: "Threshold exponent for the signal failure condition.",
+														},
+														"multiplier": schema.Int64Attribute{
+															Optional:            true,
+															Description:         "Threshold multiplier for the signal failure condition.",
+															MarkdownDescription: "Threshold multiplier for the signal failure condition.",
+														},
+													},
+													CustomType: SignalFailureType{
+														ObjectType: types.ObjectType{
+															AttrTypes: SignalFailureValue{}.AttributeTypes(ctx),
+														},
+													},
+													Optional:            true,
+													Description:         "Signal failure threshold configuration.\neda:ui:title=\"Signal Failure\"",
+													MarkdownDescription: "Signal failure threshold configuration.\neda:ui:title=\"Signal Failure\"",
+												},
+												"window_size_sec": schema.Int64Attribute{
+													Optional:            true,
+													Description:         "Sliding window size over which CRC errors are measured, in number of seconds.",
+													MarkdownDescription: "Sliding window size over which CRC errors are measured, in number of seconds.",
+												},
+											},
+											CustomType: CrcMonitorType{
+												ObjectType: types.ObjectType{
+													AttrTypes: CrcMonitorValue{}.AttributeTypes(ctx),
+												},
+											},
+											Optional:            true,
+											Description:         "Configuration of CRC monitoring on the interface.",
+											MarkdownDescription: "Configuration of CRC monitoring on the interface.",
+										},
 										"fec": schema.StringAttribute{
 											Optional:            true,
 											Description:         "Sets the Forward Error Correction (FEC) on the members of the interface.",
@@ -104,6 +205,11 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 											Optional:            true,
 											Description:         "The hold-time up behavior is triggered with any event that tries to bring up the ethernet interface.  While the hold-time up is running, the transceiver laser will be enabled, however the higher layers will not be notified that the interface is operationally up until the timer expires.  Units in milliseconds.",
 											MarkdownDescription: "The hold-time up behavior is triggered with any event that tries to bring up the ethernet interface.  While the hold-time up is running, the transceiver laser will be enabled, however the higher layers will not be notified that the interface is operationally up until the timer expires.  Units in milliseconds.",
+										},
+										"loopback_mode": schema.StringAttribute{
+											Optional:            true,
+											Description:         "Enable dataplane loopback on the interface.",
+											MarkdownDescription: "Enable dataplane loopback on the interface.",
 										},
 										"reload_delay_timer": schema.Int64Attribute{
 											Optional:            true,
@@ -493,6 +599,12 @@ func InterfaceListDataSourceSchema(ctx context.Context) schema.Schema {
 				Description:         "a label selector string to filter the results based on CR labels",
 				MarkdownDescription: "a label selector string to filter the results based on CR labels",
 			},
+			"labelselector": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         "Deprecated: a label selector string to filter the results based on CR labels",
+				MarkdownDescription: "Deprecated: a label selector string to filter the results based on CR labels",
+			},
 			"namespace": schema.StringAttribute{
 				Required:            true,
 				Description:         "the namespace scope in which to operate",
@@ -509,6 +621,7 @@ type InterfaceListModel struct {
 	Items         types.List   `tfsdk:"items"`
 	Kind          types.String `tfsdk:"kind"`
 	LabelSelector types.String `tfsdk:"label_selector"`
+	Labelselector types.String `tfsdk:"labelselector"`
 	Namespace     types.String `tfsdk:"namespace"`
 }
 
@@ -537,6 +650,24 @@ func (t ItemsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 
 	attributes := in.Attributes()
 
+	alarmsAttribute, ok := attributes["alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`alarms is missing from object`)
+
+		return nil, diags
+	}
+
+	alarmsVal, ok := alarmsAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`alarms expected to be basetypes.ObjectValue, was: %T`, alarmsAttribute))
+	}
+
 	apiVersionAttribute, ok := attributes["api_version"]
 
 	if !ok {
@@ -553,6 +684,24 @@ func (t ItemsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 		diags.AddError(
 			"Attribute Wrong Type",
 			fmt.Sprintf(`api_version expected to be basetypes.StringValue, was: %T`, apiVersionAttribute))
+	}
+
+	deviationsAttribute, ok := attributes["deviations"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`deviations is missing from object`)
+
+		return nil, diags
+	}
+
+	deviationsVal, ok := deviationsAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`deviations expected to be basetypes.ObjectValue, was: %T`, deviationsAttribute))
 	}
 
 	kindAttribute, ok := attributes["kind"]
@@ -632,7 +781,9 @@ func (t ItemsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue
 	}
 
 	return ItemsValue{
+		Alarms:     alarmsVal,
 		ApiVersion: apiVersionVal,
+		Deviations: deviationsVal,
 		Kind:       kindVal,
 		Metadata:   metadataVal,
 		Spec:       specVal,
@@ -704,6 +855,24 @@ func NewItemsValue(attributeTypes map[string]attr.Type, attributes map[string]at
 		return NewItemsValueUnknown(), diags
 	}
 
+	alarmsAttribute, ok := attributes["alarms"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`alarms is missing from object`)
+
+		return NewItemsValueUnknown(), diags
+	}
+
+	alarmsVal, ok := alarmsAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`alarms expected to be basetypes.ObjectValue, was: %T`, alarmsAttribute))
+	}
+
 	apiVersionAttribute, ok := attributes["api_version"]
 
 	if !ok {
@@ -720,6 +889,24 @@ func NewItemsValue(attributeTypes map[string]attr.Type, attributes map[string]at
 		diags.AddError(
 			"Attribute Wrong Type",
 			fmt.Sprintf(`api_version expected to be basetypes.StringValue, was: %T`, apiVersionAttribute))
+	}
+
+	deviationsAttribute, ok := attributes["deviations"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`deviations is missing from object`)
+
+		return NewItemsValueUnknown(), diags
+	}
+
+	deviationsVal, ok := deviationsAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`deviations expected to be basetypes.ObjectValue, was: %T`, deviationsAttribute))
 	}
 
 	kindAttribute, ok := attributes["kind"]
@@ -799,7 +986,9 @@ func NewItemsValue(attributeTypes map[string]attr.Type, attributes map[string]at
 	}
 
 	return ItemsValue{
+		Alarms:     alarmsVal,
 		ApiVersion: apiVersionVal,
+		Deviations: deviationsVal,
 		Kind:       kindVal,
 		Metadata:   metadataVal,
 		Spec:       specVal,
@@ -876,7 +1065,9 @@ func (t ItemsType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = ItemsValue{}
 
 type ItemsValue struct {
+	Alarms     basetypes.ObjectValue `tfsdk:"alarms"`
 	ApiVersion basetypes.StringValue `tfsdk:"api_version"`
+	Deviations basetypes.ObjectValue `tfsdk:"deviations"`
 	Kind       basetypes.StringValue `tfsdk:"kind"`
 	Metadata   basetypes.ObjectValue `tfsdk:"metadata"`
 	Spec       basetypes.ObjectValue `tfsdk:"spec"`
@@ -885,12 +1076,18 @@ type ItemsValue struct {
 }
 
 func (v ItemsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 5)
+	attrTypes := make(map[string]tftypes.Type, 7)
 
 	var val tftypes.Value
 	var err error
 
+	attrTypes["alarms"] = basetypes.ObjectType{
+		AttrTypes: AlarmsValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
 	attrTypes["api_version"] = basetypes.StringType{}.TerraformType(ctx)
+	attrTypes["deviations"] = basetypes.ObjectType{
+		AttrTypes: DeviationsValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
 	attrTypes["kind"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["metadata"] = basetypes.ObjectType{
 		AttrTypes: MetadataValue{}.AttributeTypes(ctx),
@@ -906,7 +1103,15 @@ func (v ItemsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 5)
+		vals := make(map[string]tftypes.Value, 7)
+
+		val, err = v.Alarms.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["alarms"] = val
 
 		val, err = v.ApiVersion.ToTerraformValue(ctx)
 
@@ -915,6 +1120,14 @@ func (v ItemsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error)
 		}
 
 		vals["api_version"] = val
+
+		val, err = v.Deviations.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["deviations"] = val
 
 		val, err = v.Kind.ToTerraformValue(ctx)
 
@@ -976,6 +1189,48 @@ func (v ItemsValue) String() string {
 
 func (v ItemsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	var alarms basetypes.ObjectValue
+
+	if v.Alarms.IsNull() {
+		alarms = types.ObjectNull(
+			AlarmsValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.Alarms.IsUnknown() {
+		alarms = types.ObjectUnknown(
+			AlarmsValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.Alarms.IsNull() && !v.Alarms.IsUnknown() {
+		alarms = types.ObjectValueMust(
+			AlarmsValue{}.AttributeTypes(ctx),
+			v.Alarms.Attributes(),
+		)
+	}
+
+	var deviations basetypes.ObjectValue
+
+	if v.Deviations.IsNull() {
+		deviations = types.ObjectNull(
+			DeviationsValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.Deviations.IsUnknown() {
+		deviations = types.ObjectUnknown(
+			DeviationsValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.Deviations.IsNull() && !v.Deviations.IsUnknown() {
+		deviations = types.ObjectValueMust(
+			DeviationsValue{}.AttributeTypes(ctx),
+			v.Deviations.Attributes(),
+		)
+	}
 
 	var metadata basetypes.ObjectValue
 
@@ -1041,8 +1296,14 @@ func (v ItemsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	}
 
 	attributeTypes := map[string]attr.Type{
+		"alarms": basetypes.ObjectType{
+			AttrTypes: AlarmsValue{}.AttributeTypes(ctx),
+		},
 		"api_version": basetypes.StringType{},
-		"kind":        basetypes.StringType{},
+		"deviations": basetypes.ObjectType{
+			AttrTypes: DeviationsValue{}.AttributeTypes(ctx),
+		},
+		"kind": basetypes.StringType{},
 		"metadata": basetypes.ObjectType{
 			AttrTypes: MetadataValue{}.AttributeTypes(ctx),
 		},
@@ -1065,7 +1326,9 @@ func (v ItemsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, d
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
+			"alarms":      alarms,
 			"api_version": v.ApiVersion,
+			"deviations":  deviations,
 			"kind":        v.Kind,
 			"metadata":    metadata,
 			"spec":        spec,
@@ -1090,7 +1353,15 @@ func (v ItemsValue) Equal(o attr.Value) bool {
 		return true
 	}
 
+	if !v.Alarms.Equal(other.Alarms) {
+		return false
+	}
+
 	if !v.ApiVersion.Equal(other.ApiVersion) {
+		return false
+	}
+
+	if !v.Deviations.Equal(other.Deviations) {
 		return false
 	}
 
@@ -1123,8 +1394,14 @@ func (v ItemsValue) Type(ctx context.Context) attr.Type {
 
 func (v ItemsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
+		"alarms": basetypes.ObjectType{
+			AttrTypes: AlarmsValue{}.AttributeTypes(ctx),
+		},
 		"api_version": basetypes.StringType{},
-		"kind":        basetypes.StringType{},
+		"deviations": basetypes.ObjectType{
+			AttrTypes: DeviationsValue{}.AttributeTypes(ctx),
+		},
+		"kind": basetypes.StringType{},
 		"metadata": basetypes.ObjectType{
 			AttrTypes: MetadataValue{}.AttributeTypes(ctx),
 		},
@@ -1134,6 +1411,819 @@ func (v ItemsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 		"status": basetypes.ObjectType{
 			AttrTypes: StatusValue{}.AttributeTypes(ctx),
 		},
+	}
+}
+
+var _ basetypes.ObjectTypable = AlarmsType{}
+
+type AlarmsType struct {
+	basetypes.ObjectType
+}
+
+func (t AlarmsType) Equal(o attr.Type) bool {
+	other, ok := o.(AlarmsType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t AlarmsType) String() string {
+	return "AlarmsType"
+}
+
+func (t AlarmsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	criticalAttribute, ok := attributes["critical"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`critical is missing from object`)
+
+		return nil, diags
+	}
+
+	criticalVal, ok := criticalAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`critical expected to be basetypes.Int64Value, was: %T`, criticalAttribute))
+	}
+
+	majorAttribute, ok := attributes["major"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`major is missing from object`)
+
+		return nil, diags
+	}
+
+	majorVal, ok := majorAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`major expected to be basetypes.Int64Value, was: %T`, majorAttribute))
+	}
+
+	minorAttribute, ok := attributes["minor"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`minor is missing from object`)
+
+		return nil, diags
+	}
+
+	minorVal, ok := minorAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`minor expected to be basetypes.Int64Value, was: %T`, minorAttribute))
+	}
+
+	warningAttribute, ok := attributes["warning"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`warning is missing from object`)
+
+		return nil, diags
+	}
+
+	warningVal, ok := warningAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`warning expected to be basetypes.Int64Value, was: %T`, warningAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return AlarmsValue{
+		Critical: criticalVal,
+		Major:    majorVal,
+		Minor:    minorVal,
+		Warning:  warningVal,
+		state:    attr.ValueStateKnown,
+	}, diags
+}
+
+func NewAlarmsValueNull() AlarmsValue {
+	return AlarmsValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewAlarmsValueUnknown() AlarmsValue {
+	return AlarmsValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewAlarmsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (AlarmsValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing AlarmsValue Attribute Value",
+				"While creating a AlarmsValue value, a missing attribute value was detected. "+
+					"A AlarmsValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("AlarmsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid AlarmsValue Attribute Type",
+				"While creating a AlarmsValue value, an invalid attribute value was detected. "+
+					"A AlarmsValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("AlarmsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("AlarmsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra AlarmsValue Attribute Value",
+				"While creating a AlarmsValue value, an extra attribute value was detected. "+
+					"A AlarmsValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra AlarmsValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	criticalAttribute, ok := attributes["critical"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`critical is missing from object`)
+
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	criticalVal, ok := criticalAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`critical expected to be basetypes.Int64Value, was: %T`, criticalAttribute))
+	}
+
+	majorAttribute, ok := attributes["major"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`major is missing from object`)
+
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	majorVal, ok := majorAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`major expected to be basetypes.Int64Value, was: %T`, majorAttribute))
+	}
+
+	minorAttribute, ok := attributes["minor"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`minor is missing from object`)
+
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	minorVal, ok := minorAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`minor expected to be basetypes.Int64Value, was: %T`, minorAttribute))
+	}
+
+	warningAttribute, ok := attributes["warning"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`warning is missing from object`)
+
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	warningVal, ok := warningAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`warning expected to be basetypes.Int64Value, was: %T`, warningAttribute))
+	}
+
+	if diags.HasError() {
+		return NewAlarmsValueUnknown(), diags
+	}
+
+	return AlarmsValue{
+		Critical: criticalVal,
+		Major:    majorVal,
+		Minor:    minorVal,
+		Warning:  warningVal,
+		state:    attr.ValueStateKnown,
+	}, diags
+}
+
+func NewAlarmsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) AlarmsValue {
+	object, diags := NewAlarmsValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewAlarmsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t AlarmsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewAlarmsValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewAlarmsValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewAlarmsValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewAlarmsValueMust(AlarmsValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t AlarmsType) ValueType(ctx context.Context) attr.Value {
+	return AlarmsValue{}
+}
+
+var _ basetypes.ObjectValuable = AlarmsValue{}
+
+type AlarmsValue struct {
+	Critical basetypes.Int64Value `tfsdk:"critical"`
+	Major    basetypes.Int64Value `tfsdk:"major"`
+	Minor    basetypes.Int64Value `tfsdk:"minor"`
+	Warning  basetypes.Int64Value `tfsdk:"warning"`
+	state    attr.ValueState
+}
+
+func (v AlarmsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 4)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["critical"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["major"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["minor"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["warning"] = basetypes.Int64Type{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 4)
+
+		val, err = v.Critical.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["critical"] = val
+
+		val, err = v.Major.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["major"] = val
+
+		val, err = v.Minor.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["minor"] = val
+
+		val, err = v.Warning.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["warning"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v AlarmsValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v AlarmsValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v AlarmsValue) String() string {
+	return "AlarmsValue"
+}
+
+func (v AlarmsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"critical": basetypes.Int64Type{},
+		"major":    basetypes.Int64Type{},
+		"minor":    basetypes.Int64Type{},
+		"warning":  basetypes.Int64Type{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"critical": v.Critical,
+			"major":    v.Major,
+			"minor":    v.Minor,
+			"warning":  v.Warning,
+		})
+
+	return objVal, diags
+}
+
+func (v AlarmsValue) Equal(o attr.Value) bool {
+	other, ok := o.(AlarmsValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Critical.Equal(other.Critical) {
+		return false
+	}
+
+	if !v.Major.Equal(other.Major) {
+		return false
+	}
+
+	if !v.Minor.Equal(other.Minor) {
+		return false
+	}
+
+	if !v.Warning.Equal(other.Warning) {
+		return false
+	}
+
+	return true
+}
+
+func (v AlarmsValue) Type(ctx context.Context) attr.Type {
+	return AlarmsType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v AlarmsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"critical": basetypes.Int64Type{},
+		"major":    basetypes.Int64Type{},
+		"minor":    basetypes.Int64Type{},
+		"warning":  basetypes.Int64Type{},
+	}
+}
+
+var _ basetypes.ObjectTypable = DeviationsType{}
+
+type DeviationsType struct {
+	basetypes.ObjectType
+}
+
+func (t DeviationsType) Equal(o attr.Type) bool {
+	other, ok := o.(DeviationsType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t DeviationsType) String() string {
+	return "DeviationsType"
+}
+
+func (t DeviationsType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	countAttribute, ok := attributes["count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`count is missing from object`)
+
+		return nil, diags
+	}
+
+	countVal, ok := countAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`count expected to be basetypes.Int64Value, was: %T`, countAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return DeviationsValue{
+		Count: countVal,
+		state: attr.ValueStateKnown,
+	}, diags
+}
+
+func NewDeviationsValueNull() DeviationsValue {
+	return DeviationsValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewDeviationsValueUnknown() DeviationsValue {
+	return DeviationsValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewDeviationsValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (DeviationsValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing DeviationsValue Attribute Value",
+				"While creating a DeviationsValue value, a missing attribute value was detected. "+
+					"A DeviationsValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("DeviationsValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid DeviationsValue Attribute Type",
+				"While creating a DeviationsValue value, an invalid attribute value was detected. "+
+					"A DeviationsValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("DeviationsValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("DeviationsValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra DeviationsValue Attribute Value",
+				"While creating a DeviationsValue value, an extra attribute value was detected. "+
+					"A DeviationsValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra DeviationsValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewDeviationsValueUnknown(), diags
+	}
+
+	countAttribute, ok := attributes["count"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`count is missing from object`)
+
+		return NewDeviationsValueUnknown(), diags
+	}
+
+	countVal, ok := countAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`count expected to be basetypes.Int64Value, was: %T`, countAttribute))
+	}
+
+	if diags.HasError() {
+		return NewDeviationsValueUnknown(), diags
+	}
+
+	return DeviationsValue{
+		Count: countVal,
+		state: attr.ValueStateKnown,
+	}, diags
+}
+
+func NewDeviationsValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) DeviationsValue {
+	object, diags := NewDeviationsValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewDeviationsValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t DeviationsType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewDeviationsValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewDeviationsValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewDeviationsValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewDeviationsValueMust(DeviationsValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t DeviationsType) ValueType(ctx context.Context) attr.Value {
+	return DeviationsValue{}
+}
+
+var _ basetypes.ObjectValuable = DeviationsValue{}
+
+type DeviationsValue struct {
+	Count basetypes.Int64Value `tfsdk:"count"`
+	state attr.ValueState
+}
+
+func (v DeviationsValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 1)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["count"] = basetypes.Int64Type{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 1)
+
+		val, err = v.Count.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["count"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v DeviationsValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v DeviationsValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v DeviationsValue) String() string {
+	return "DeviationsValue"
+}
+
+func (v DeviationsValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"count": basetypes.Int64Type{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"count": v.Count,
+		})
+
+	return objVal, diags
+}
+
+func (v DeviationsValue) Equal(o attr.Value) bool {
+	other, ok := o.(DeviationsValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Count.Equal(other.Count) {
+		return false
+	}
+
+	return true
+}
+
+func (v DeviationsValue) Type(ctx context.Context) attr.Type {
+	return DeviationsType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v DeviationsValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"count": basetypes.Int64Type{},
 	}
 }
 
@@ -2621,6 +3711,24 @@ func (t EthernetType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 
 	attributes := in.Attributes()
 
+	crcMonitorAttribute, ok := attributes["crc_monitor"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`crc_monitor is missing from object`)
+
+		return nil, diags
+	}
+
+	crcMonitorVal, ok := crcMonitorAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`crc_monitor expected to be basetypes.ObjectValue, was: %T`, crcMonitorAttribute))
+	}
+
 	fecAttribute, ok := attributes["fec"]
 
 	if !ok {
@@ -2673,6 +3781,24 @@ func (t EthernetType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 		diags.AddError(
 			"Attribute Wrong Type",
 			fmt.Sprintf(`hold_up_timer expected to be basetypes.Int64Value, was: %T`, holdUpTimerAttribute))
+	}
+
+	loopbackModeAttribute, ok := attributes["loopback_mode"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`loopback_mode is missing from object`)
+
+		return nil, diags
+	}
+
+	loopbackModeVal, ok := loopbackModeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`loopback_mode expected to be basetypes.StringValue, was: %T`, loopbackModeAttribute))
 	}
 
 	reloadDelayTimerAttribute, ok := attributes["reload_delay_timer"]
@@ -2770,9 +3896,11 @@ func (t EthernetType) ValueFromObject(ctx context.Context, in basetypes.ObjectVa
 	}
 
 	return EthernetValue{
+		CrcMonitor:               crcMonitorVal,
 		Fec:                      fecVal,
 		HoldDownTimer:            holdDownTimerVal,
 		HoldUpTimer:              holdUpTimerVal,
+		LoopbackMode:             loopbackModeVal,
 		ReloadDelayTimer:         reloadDelayTimerVal,
 		Speed:                    speedVal,
 		StandbySignaling:         standbySignalingVal,
@@ -2845,6 +3973,24 @@ func NewEthernetValue(attributeTypes map[string]attr.Type, attributes map[string
 		return NewEthernetValueUnknown(), diags
 	}
 
+	crcMonitorAttribute, ok := attributes["crc_monitor"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`crc_monitor is missing from object`)
+
+		return NewEthernetValueUnknown(), diags
+	}
+
+	crcMonitorVal, ok := crcMonitorAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`crc_monitor expected to be basetypes.ObjectValue, was: %T`, crcMonitorAttribute))
+	}
+
 	fecAttribute, ok := attributes["fec"]
 
 	if !ok {
@@ -2897,6 +4043,24 @@ func NewEthernetValue(attributeTypes map[string]attr.Type, attributes map[string
 		diags.AddError(
 			"Attribute Wrong Type",
 			fmt.Sprintf(`hold_up_timer expected to be basetypes.Int64Value, was: %T`, holdUpTimerAttribute))
+	}
+
+	loopbackModeAttribute, ok := attributes["loopback_mode"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`loopback_mode is missing from object`)
+
+		return NewEthernetValueUnknown(), diags
+	}
+
+	loopbackModeVal, ok := loopbackModeAttribute.(basetypes.StringValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`loopback_mode expected to be basetypes.StringValue, was: %T`, loopbackModeAttribute))
 	}
 
 	reloadDelayTimerAttribute, ok := attributes["reload_delay_timer"]
@@ -2994,9 +4158,11 @@ func NewEthernetValue(attributeTypes map[string]attr.Type, attributes map[string
 	}
 
 	return EthernetValue{
+		CrcMonitor:               crcMonitorVal,
 		Fec:                      fecVal,
 		HoldDownTimer:            holdDownTimerVal,
 		HoldUpTimer:              holdUpTimerVal,
+		LoopbackMode:             loopbackModeVal,
 		ReloadDelayTimer:         reloadDelayTimerVal,
 		Speed:                    speedVal,
 		StandbySignaling:         standbySignalingVal,
@@ -3074,9 +4240,11 @@ func (t EthernetType) ValueType(ctx context.Context) attr.Value {
 var _ basetypes.ObjectValuable = EthernetValue{}
 
 type EthernetValue struct {
+	CrcMonitor               basetypes.ObjectValue `tfsdk:"crc_monitor"`
 	Fec                      basetypes.StringValue `tfsdk:"fec"`
 	HoldDownTimer            basetypes.Int64Value  `tfsdk:"hold_down_timer"`
 	HoldUpTimer              basetypes.Int64Value  `tfsdk:"hold_up_timer"`
+	LoopbackMode             basetypes.StringValue `tfsdk:"loopback_mode"`
 	ReloadDelayTimer         basetypes.Int64Value  `tfsdk:"reload_delay_timer"`
 	Speed                    basetypes.StringValue `tfsdk:"speed"`
 	StandbySignaling         basetypes.StringValue `tfsdk:"standby_signaling"`
@@ -3086,14 +4254,18 @@ type EthernetValue struct {
 }
 
 func (v EthernetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
-	attrTypes := make(map[string]tftypes.Type, 8)
+	attrTypes := make(map[string]tftypes.Type, 10)
 
 	var val tftypes.Value
 	var err error
 
+	attrTypes["crc_monitor"] = basetypes.ObjectType{
+		AttrTypes: CrcMonitorValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
 	attrTypes["fec"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["hold_down_timer"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["hold_up_timer"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["loopback_mode"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["reload_delay_timer"] = basetypes.Int64Type{}.TerraformType(ctx)
 	attrTypes["speed"] = basetypes.StringType{}.TerraformType(ctx)
 	attrTypes["standby_signaling"] = basetypes.StringType{}.TerraformType(ctx)
@@ -3108,7 +4280,15 @@ func (v EthernetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 
 	switch v.state {
 	case attr.ValueStateKnown:
-		vals := make(map[string]tftypes.Value, 8)
+		vals := make(map[string]tftypes.Value, 10)
+
+		val, err = v.CrcMonitor.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["crc_monitor"] = val
 
 		val, err = v.Fec.ToTerraformValue(ctx)
 
@@ -3133,6 +4313,14 @@ func (v EthernetValue) ToTerraformValue(ctx context.Context) (tftypes.Value, err
 		}
 
 		vals["hold_up_timer"] = val
+
+		val, err = v.LoopbackMode.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["loopback_mode"] = val
 
 		val, err = v.ReloadDelayTimer.ToTerraformValue(ctx)
 
@@ -3203,6 +4391,27 @@ func (v EthernetValue) String() string {
 func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
+	var crcMonitor basetypes.ObjectValue
+
+	if v.CrcMonitor.IsNull() {
+		crcMonitor = types.ObjectNull(
+			CrcMonitorValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.CrcMonitor.IsUnknown() {
+		crcMonitor = types.ObjectUnknown(
+			CrcMonitorValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.CrcMonitor.IsNull() && !v.CrcMonitor.IsUnknown() {
+		crcMonitor = types.ObjectValueMust(
+			CrcMonitorValue{}.AttributeTypes(ctx),
+			v.CrcMonitor.Attributes(),
+		)
+	}
+
 	var stormControl basetypes.ObjectValue
 
 	if v.StormControl.IsNull() {
@@ -3238,9 +4447,13 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 
 	if diags.HasError() {
 		return types.ObjectUnknown(map[string]attr.Type{
+			"crc_monitor": basetypes.ObjectType{
+				AttrTypes: CrcMonitorValue{}.AttributeTypes(ctx),
+			},
 			"fec":                basetypes.StringType{},
 			"hold_down_timer":    basetypes.Int64Type{},
 			"hold_up_timer":      basetypes.Int64Type{},
+			"loopback_mode":      basetypes.StringType{},
 			"reload_delay_timer": basetypes.Int64Type{},
 			"speed":              basetypes.StringType{},
 			"standby_signaling":  basetypes.StringType{},
@@ -3254,9 +4467,13 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 	}
 
 	attributeTypes := map[string]attr.Type{
+		"crc_monitor": basetypes.ObjectType{
+			AttrTypes: CrcMonitorValue{}.AttributeTypes(ctx),
+		},
 		"fec":                basetypes.StringType{},
 		"hold_down_timer":    basetypes.Int64Type{},
 		"hold_up_timer":      basetypes.Int64Type{},
+		"loopback_mode":      basetypes.StringType{},
 		"reload_delay_timer": basetypes.Int64Type{},
 		"speed":              basetypes.StringType{},
 		"standby_signaling":  basetypes.StringType{},
@@ -3279,9 +4496,11 @@ func (v EthernetValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue
 	objVal, diags := types.ObjectValue(
 		attributeTypes,
 		map[string]attr.Value{
+			"crc_monitor":                crcMonitor,
 			"fec":                        v.Fec,
 			"hold_down_timer":            v.HoldDownTimer,
 			"hold_up_timer":              v.HoldUpTimer,
+			"loopback_mode":              v.LoopbackMode,
 			"reload_delay_timer":         v.ReloadDelayTimer,
 			"speed":                      v.Speed,
 			"standby_signaling":          v.StandbySignaling,
@@ -3307,6 +4526,10 @@ func (v EthernetValue) Equal(o attr.Value) bool {
 		return true
 	}
 
+	if !v.CrcMonitor.Equal(other.CrcMonitor) {
+		return false
+	}
+
 	if !v.Fec.Equal(other.Fec) {
 		return false
 	}
@@ -3316,6 +4539,10 @@ func (v EthernetValue) Equal(o attr.Value) bool {
 	}
 
 	if !v.HoldUpTimer.Equal(other.HoldUpTimer) {
+		return false
+	}
+
+	if !v.LoopbackMode.Equal(other.LoopbackMode) {
 		return false
 	}
 
@@ -3352,9 +4579,13 @@ func (v EthernetValue) Type(ctx context.Context) attr.Type {
 
 func (v EthernetValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
 	return map[string]attr.Type{
+		"crc_monitor": basetypes.ObjectType{
+			AttrTypes: CrcMonitorValue{}.AttributeTypes(ctx),
+		},
 		"fec":                basetypes.StringType{},
 		"hold_down_timer":    basetypes.Int64Type{},
 		"hold_up_timer":      basetypes.Int64Type{},
+		"loopback_mode":      basetypes.StringType{},
 		"reload_delay_timer": basetypes.Int64Type{},
 		"speed":              basetypes.StringType{},
 		"standby_signaling":  basetypes.StringType{},
@@ -3364,6 +4595,1307 @@ func (v EthernetValue) AttributeTypes(ctx context.Context) map[string]attr.Type 
 		"transparent_l2cp_protocols": basetypes.ListType{
 			ElemType: types.StringType,
 		},
+	}
+}
+
+var _ basetypes.ObjectTypable = CrcMonitorType{}
+
+type CrcMonitorType struct {
+	basetypes.ObjectType
+}
+
+func (t CrcMonitorType) Equal(o attr.Type) bool {
+	other, ok := o.(CrcMonitorType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t CrcMonitorType) String() string {
+	return "CrcMonitorType"
+}
+
+func (t CrcMonitorType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return nil, diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	signalDegradeAttribute, ok := attributes["signal_degrade"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`signal_degrade is missing from object`)
+
+		return nil, diags
+	}
+
+	signalDegradeVal, ok := signalDegradeAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`signal_degrade expected to be basetypes.ObjectValue, was: %T`, signalDegradeAttribute))
+	}
+
+	signalFailureAttribute, ok := attributes["signal_failure"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`signal_failure is missing from object`)
+
+		return nil, diags
+	}
+
+	signalFailureVal, ok := signalFailureAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`signal_failure expected to be basetypes.ObjectValue, was: %T`, signalFailureAttribute))
+	}
+
+	windowSizeSecAttribute, ok := attributes["window_size_sec"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`window_size_sec is missing from object`)
+
+		return nil, diags
+	}
+
+	windowSizeSecVal, ok := windowSizeSecAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`window_size_sec expected to be basetypes.Int64Value, was: %T`, windowSizeSecAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return CrcMonitorValue{
+		Enabled:       enabledVal,
+		SignalDegrade: signalDegradeVal,
+		SignalFailure: signalFailureVal,
+		WindowSizeSec: windowSizeSecVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewCrcMonitorValueNull() CrcMonitorValue {
+	return CrcMonitorValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewCrcMonitorValueUnknown() CrcMonitorValue {
+	return CrcMonitorValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewCrcMonitorValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (CrcMonitorValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing CrcMonitorValue Attribute Value",
+				"While creating a CrcMonitorValue value, a missing attribute value was detected. "+
+					"A CrcMonitorValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("CrcMonitorValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid CrcMonitorValue Attribute Type",
+				"While creating a CrcMonitorValue value, an invalid attribute value was detected. "+
+					"A CrcMonitorValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("CrcMonitorValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("CrcMonitorValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra CrcMonitorValue Attribute Value",
+				"While creating a CrcMonitorValue value, an extra attribute value was detected. "+
+					"A CrcMonitorValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra CrcMonitorValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	enabledAttribute, ok := attributes["enabled"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`enabled is missing from object`)
+
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	enabledVal, ok := enabledAttribute.(basetypes.BoolValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`enabled expected to be basetypes.BoolValue, was: %T`, enabledAttribute))
+	}
+
+	signalDegradeAttribute, ok := attributes["signal_degrade"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`signal_degrade is missing from object`)
+
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	signalDegradeVal, ok := signalDegradeAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`signal_degrade expected to be basetypes.ObjectValue, was: %T`, signalDegradeAttribute))
+	}
+
+	signalFailureAttribute, ok := attributes["signal_failure"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`signal_failure is missing from object`)
+
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	signalFailureVal, ok := signalFailureAttribute.(basetypes.ObjectValue)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`signal_failure expected to be basetypes.ObjectValue, was: %T`, signalFailureAttribute))
+	}
+
+	windowSizeSecAttribute, ok := attributes["window_size_sec"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`window_size_sec is missing from object`)
+
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	windowSizeSecVal, ok := windowSizeSecAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`window_size_sec expected to be basetypes.Int64Value, was: %T`, windowSizeSecAttribute))
+	}
+
+	if diags.HasError() {
+		return NewCrcMonitorValueUnknown(), diags
+	}
+
+	return CrcMonitorValue{
+		Enabled:       enabledVal,
+		SignalDegrade: signalDegradeVal,
+		SignalFailure: signalFailureVal,
+		WindowSizeSec: windowSizeSecVal,
+		state:         attr.ValueStateKnown,
+	}, diags
+}
+
+func NewCrcMonitorValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) CrcMonitorValue {
+	object, diags := NewCrcMonitorValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewCrcMonitorValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t CrcMonitorType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewCrcMonitorValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewCrcMonitorValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewCrcMonitorValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewCrcMonitorValueMust(CrcMonitorValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t CrcMonitorType) ValueType(ctx context.Context) attr.Value {
+	return CrcMonitorValue{}
+}
+
+var _ basetypes.ObjectValuable = CrcMonitorValue{}
+
+type CrcMonitorValue struct {
+	Enabled       basetypes.BoolValue   `tfsdk:"enabled"`
+	SignalDegrade basetypes.ObjectValue `tfsdk:"signal_degrade"`
+	SignalFailure basetypes.ObjectValue `tfsdk:"signal_failure"`
+	WindowSizeSec basetypes.Int64Value  `tfsdk:"window_size_sec"`
+	state         attr.ValueState
+}
+
+func (v CrcMonitorValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 4)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["enabled"] = basetypes.BoolType{}.TerraformType(ctx)
+	attrTypes["signal_degrade"] = basetypes.ObjectType{
+		AttrTypes: SignalDegradeValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+	attrTypes["signal_failure"] = basetypes.ObjectType{
+		AttrTypes: SignalFailureValue{}.AttributeTypes(ctx),
+	}.TerraformType(ctx)
+	attrTypes["window_size_sec"] = basetypes.Int64Type{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 4)
+
+		val, err = v.Enabled.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["enabled"] = val
+
+		val, err = v.SignalDegrade.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["signal_degrade"] = val
+
+		val, err = v.SignalFailure.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["signal_failure"] = val
+
+		val, err = v.WindowSizeSec.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["window_size_sec"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v CrcMonitorValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v CrcMonitorValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v CrcMonitorValue) String() string {
+	return "CrcMonitorValue"
+}
+
+func (v CrcMonitorValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var signalDegrade basetypes.ObjectValue
+
+	if v.SignalDegrade.IsNull() {
+		signalDegrade = types.ObjectNull(
+			SignalDegradeValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.SignalDegrade.IsUnknown() {
+		signalDegrade = types.ObjectUnknown(
+			SignalDegradeValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.SignalDegrade.IsNull() && !v.SignalDegrade.IsUnknown() {
+		signalDegrade = types.ObjectValueMust(
+			SignalDegradeValue{}.AttributeTypes(ctx),
+			v.SignalDegrade.Attributes(),
+		)
+	}
+
+	var signalFailure basetypes.ObjectValue
+
+	if v.SignalFailure.IsNull() {
+		signalFailure = types.ObjectNull(
+			SignalFailureValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if v.SignalFailure.IsUnknown() {
+		signalFailure = types.ObjectUnknown(
+			SignalFailureValue{}.AttributeTypes(ctx),
+		)
+	}
+
+	if !v.SignalFailure.IsNull() && !v.SignalFailure.IsUnknown() {
+		signalFailure = types.ObjectValueMust(
+			SignalFailureValue{}.AttributeTypes(ctx),
+			v.SignalFailure.Attributes(),
+		)
+	}
+
+	attributeTypes := map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+		"signal_degrade": basetypes.ObjectType{
+			AttrTypes: SignalDegradeValue{}.AttributeTypes(ctx),
+		},
+		"signal_failure": basetypes.ObjectType{
+			AttrTypes: SignalFailureValue{}.AttributeTypes(ctx),
+		},
+		"window_size_sec": basetypes.Int64Type{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"enabled":         v.Enabled,
+			"signal_degrade":  signalDegrade,
+			"signal_failure":  signalFailure,
+			"window_size_sec": v.WindowSizeSec,
+		})
+
+	return objVal, diags
+}
+
+func (v CrcMonitorValue) Equal(o attr.Value) bool {
+	other, ok := o.(CrcMonitorValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Enabled.Equal(other.Enabled) {
+		return false
+	}
+
+	if !v.SignalDegrade.Equal(other.SignalDegrade) {
+		return false
+	}
+
+	if !v.SignalFailure.Equal(other.SignalFailure) {
+		return false
+	}
+
+	if !v.WindowSizeSec.Equal(other.WindowSizeSec) {
+		return false
+	}
+
+	return true
+}
+
+func (v CrcMonitorValue) Type(ctx context.Context) attr.Type {
+	return CrcMonitorType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v CrcMonitorValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"enabled": basetypes.BoolType{},
+		"signal_degrade": basetypes.ObjectType{
+			AttrTypes: SignalDegradeValue{}.AttributeTypes(ctx),
+		},
+		"signal_failure": basetypes.ObjectType{
+			AttrTypes: SignalFailureValue{}.AttributeTypes(ctx),
+		},
+		"window_size_sec": basetypes.Int64Type{},
+	}
+}
+
+var _ basetypes.ObjectTypable = SignalDegradeType{}
+
+type SignalDegradeType struct {
+	basetypes.ObjectType
+}
+
+func (t SignalDegradeType) Equal(o attr.Type) bool {
+	other, ok := o.(SignalDegradeType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t SignalDegradeType) String() string {
+	return "SignalDegradeType"
+}
+
+func (t SignalDegradeType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	exponentAttribute, ok := attributes["exponent"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`exponent is missing from object`)
+
+		return nil, diags
+	}
+
+	exponentVal, ok := exponentAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`exponent expected to be basetypes.Int64Value, was: %T`, exponentAttribute))
+	}
+
+	multiplierAttribute, ok := attributes["multiplier"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`multiplier is missing from object`)
+
+		return nil, diags
+	}
+
+	multiplierVal, ok := multiplierAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`multiplier expected to be basetypes.Int64Value, was: %T`, multiplierAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return SignalDegradeValue{
+		Exponent:   exponentVal,
+		Multiplier: multiplierVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSignalDegradeValueNull() SignalDegradeValue {
+	return SignalDegradeValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewSignalDegradeValueUnknown() SignalDegradeValue {
+	return SignalDegradeValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewSignalDegradeValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (SignalDegradeValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing SignalDegradeValue Attribute Value",
+				"While creating a SignalDegradeValue value, a missing attribute value was detected. "+
+					"A SignalDegradeValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SignalDegradeValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid SignalDegradeValue Attribute Type",
+				"While creating a SignalDegradeValue value, an invalid attribute value was detected. "+
+					"A SignalDegradeValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SignalDegradeValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("SignalDegradeValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra SignalDegradeValue Attribute Value",
+				"While creating a SignalDegradeValue value, an extra attribute value was detected. "+
+					"A SignalDegradeValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra SignalDegradeValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewSignalDegradeValueUnknown(), diags
+	}
+
+	exponentAttribute, ok := attributes["exponent"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`exponent is missing from object`)
+
+		return NewSignalDegradeValueUnknown(), diags
+	}
+
+	exponentVal, ok := exponentAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`exponent expected to be basetypes.Int64Value, was: %T`, exponentAttribute))
+	}
+
+	multiplierAttribute, ok := attributes["multiplier"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`multiplier is missing from object`)
+
+		return NewSignalDegradeValueUnknown(), diags
+	}
+
+	multiplierVal, ok := multiplierAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`multiplier expected to be basetypes.Int64Value, was: %T`, multiplierAttribute))
+	}
+
+	if diags.HasError() {
+		return NewSignalDegradeValueUnknown(), diags
+	}
+
+	return SignalDegradeValue{
+		Exponent:   exponentVal,
+		Multiplier: multiplierVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSignalDegradeValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) SignalDegradeValue {
+	object, diags := NewSignalDegradeValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewSignalDegradeValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t SignalDegradeType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewSignalDegradeValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewSignalDegradeValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewSignalDegradeValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewSignalDegradeValueMust(SignalDegradeValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t SignalDegradeType) ValueType(ctx context.Context) attr.Value {
+	return SignalDegradeValue{}
+}
+
+var _ basetypes.ObjectValuable = SignalDegradeValue{}
+
+type SignalDegradeValue struct {
+	Exponent   basetypes.Int64Value `tfsdk:"exponent"`
+	Multiplier basetypes.Int64Value `tfsdk:"multiplier"`
+	state      attr.ValueState
+}
+
+func (v SignalDegradeValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["exponent"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["multiplier"] = basetypes.Int64Type{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.Exponent.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["exponent"] = val
+
+		val, err = v.Multiplier.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["multiplier"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v SignalDegradeValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v SignalDegradeValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v SignalDegradeValue) String() string {
+	return "SignalDegradeValue"
+}
+
+func (v SignalDegradeValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"exponent":   basetypes.Int64Type{},
+		"multiplier": basetypes.Int64Type{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"exponent":   v.Exponent,
+			"multiplier": v.Multiplier,
+		})
+
+	return objVal, diags
+}
+
+func (v SignalDegradeValue) Equal(o attr.Value) bool {
+	other, ok := o.(SignalDegradeValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Exponent.Equal(other.Exponent) {
+		return false
+	}
+
+	if !v.Multiplier.Equal(other.Multiplier) {
+		return false
+	}
+
+	return true
+}
+
+func (v SignalDegradeValue) Type(ctx context.Context) attr.Type {
+	return SignalDegradeType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v SignalDegradeValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"exponent":   basetypes.Int64Type{},
+		"multiplier": basetypes.Int64Type{},
+	}
+}
+
+var _ basetypes.ObjectTypable = SignalFailureType{}
+
+type SignalFailureType struct {
+	basetypes.ObjectType
+}
+
+func (t SignalFailureType) Equal(o attr.Type) bool {
+	other, ok := o.(SignalFailureType)
+
+	if !ok {
+		return false
+	}
+
+	return t.ObjectType.Equal(other.ObjectType)
+}
+
+func (t SignalFailureType) String() string {
+	return "SignalFailureType"
+}
+
+func (t SignalFailureType) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributes := in.Attributes()
+
+	exponentAttribute, ok := attributes["exponent"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`exponent is missing from object`)
+
+		return nil, diags
+	}
+
+	exponentVal, ok := exponentAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`exponent expected to be basetypes.Int64Value, was: %T`, exponentAttribute))
+	}
+
+	multiplierAttribute, ok := attributes["multiplier"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`multiplier is missing from object`)
+
+		return nil, diags
+	}
+
+	multiplierVal, ok := multiplierAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`multiplier expected to be basetypes.Int64Value, was: %T`, multiplierAttribute))
+	}
+
+	if diags.HasError() {
+		return nil, diags
+	}
+
+	return SignalFailureValue{
+		Exponent:   exponentVal,
+		Multiplier: multiplierVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSignalFailureValueNull() SignalFailureValue {
+	return SignalFailureValue{
+		state: attr.ValueStateNull,
+	}
+}
+
+func NewSignalFailureValueUnknown() SignalFailureValue {
+	return SignalFailureValue{
+		state: attr.ValueStateUnknown,
+	}
+}
+
+func NewSignalFailureValue(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) (SignalFailureValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/521
+	ctx := context.Background()
+
+	for name, attributeType := range attributeTypes {
+		attribute, ok := attributes[name]
+
+		if !ok {
+			diags.AddError(
+				"Missing SignalFailureValue Attribute Value",
+				"While creating a SignalFailureValue value, a missing attribute value was detected. "+
+					"A SignalFailureValue must contain values for all attributes, even if null or unknown. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SignalFailureValue Attribute Name (%s) Expected Type: %s", name, attributeType.String()),
+			)
+
+			continue
+		}
+
+		if !attributeType.Equal(attribute.Type(ctx)) {
+			diags.AddError(
+				"Invalid SignalFailureValue Attribute Type",
+				"While creating a SignalFailureValue value, an invalid attribute value was detected. "+
+					"A SignalFailureValue must use a matching attribute type for the value. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("SignalFailureValue Attribute Name (%s) Expected Type: %s\n", name, attributeType.String())+
+					fmt.Sprintf("SignalFailureValue Attribute Name (%s) Given Type: %s", name, attribute.Type(ctx)),
+			)
+		}
+	}
+
+	for name := range attributes {
+		_, ok := attributeTypes[name]
+
+		if !ok {
+			diags.AddError(
+				"Extra SignalFailureValue Attribute Value",
+				"While creating a SignalFailureValue value, an extra attribute value was detected. "+
+					"A SignalFailureValue must not contain values beyond the expected attribute types. "+
+					"This is always an issue with the provider and should be reported to the provider developers.\n\n"+
+					fmt.Sprintf("Extra SignalFailureValue Attribute Name: %s", name),
+			)
+		}
+	}
+
+	if diags.HasError() {
+		return NewSignalFailureValueUnknown(), diags
+	}
+
+	exponentAttribute, ok := attributes["exponent"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`exponent is missing from object`)
+
+		return NewSignalFailureValueUnknown(), diags
+	}
+
+	exponentVal, ok := exponentAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`exponent expected to be basetypes.Int64Value, was: %T`, exponentAttribute))
+	}
+
+	multiplierAttribute, ok := attributes["multiplier"]
+
+	if !ok {
+		diags.AddError(
+			"Attribute Missing",
+			`multiplier is missing from object`)
+
+		return NewSignalFailureValueUnknown(), diags
+	}
+
+	multiplierVal, ok := multiplierAttribute.(basetypes.Int64Value)
+
+	if !ok {
+		diags.AddError(
+			"Attribute Wrong Type",
+			fmt.Sprintf(`multiplier expected to be basetypes.Int64Value, was: %T`, multiplierAttribute))
+	}
+
+	if diags.HasError() {
+		return NewSignalFailureValueUnknown(), diags
+	}
+
+	return SignalFailureValue{
+		Exponent:   exponentVal,
+		Multiplier: multiplierVal,
+		state:      attr.ValueStateKnown,
+	}, diags
+}
+
+func NewSignalFailureValueMust(attributeTypes map[string]attr.Type, attributes map[string]attr.Value) SignalFailureValue {
+	object, diags := NewSignalFailureValue(attributeTypes, attributes)
+
+	if diags.HasError() {
+		// This could potentially be added to the diag package.
+		diagsStrings := make([]string, 0, len(diags))
+
+		for _, diagnostic := range diags {
+			diagsStrings = append(diagsStrings, fmt.Sprintf(
+				"%s | %s | %s",
+				diagnostic.Severity(),
+				diagnostic.Summary(),
+				diagnostic.Detail()))
+		}
+
+		panic("NewSignalFailureValueMust received error(s): " + strings.Join(diagsStrings, "\n"))
+	}
+
+	return object
+}
+
+func (t SignalFailureType) ValueFromTerraform(ctx context.Context, in tftypes.Value) (attr.Value, error) {
+	if in.Type() == nil {
+		return NewSignalFailureValueNull(), nil
+	}
+
+	if !in.Type().Equal(t.TerraformType(ctx)) {
+		return nil, fmt.Errorf("expected %s, got %s", t.TerraformType(ctx), in.Type())
+	}
+
+	if !in.IsKnown() {
+		return NewSignalFailureValueUnknown(), nil
+	}
+
+	if in.IsNull() {
+		return NewSignalFailureValueNull(), nil
+	}
+
+	attributes := map[string]attr.Value{}
+
+	val := map[string]tftypes.Value{}
+
+	err := in.As(&val)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range val {
+		a, err := t.AttrTypes[k].ValueFromTerraform(ctx, v)
+
+		if err != nil {
+			return nil, err
+		}
+
+		attributes[k] = a
+	}
+
+	return NewSignalFailureValueMust(SignalFailureValue{}.AttributeTypes(ctx), attributes), nil
+}
+
+func (t SignalFailureType) ValueType(ctx context.Context) attr.Value {
+	return SignalFailureValue{}
+}
+
+var _ basetypes.ObjectValuable = SignalFailureValue{}
+
+type SignalFailureValue struct {
+	Exponent   basetypes.Int64Value `tfsdk:"exponent"`
+	Multiplier basetypes.Int64Value `tfsdk:"multiplier"`
+	state      attr.ValueState
+}
+
+func (v SignalFailureValue) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	attrTypes := make(map[string]tftypes.Type, 2)
+
+	var val tftypes.Value
+	var err error
+
+	attrTypes["exponent"] = basetypes.Int64Type{}.TerraformType(ctx)
+	attrTypes["multiplier"] = basetypes.Int64Type{}.TerraformType(ctx)
+
+	objectType := tftypes.Object{AttributeTypes: attrTypes}
+
+	switch v.state {
+	case attr.ValueStateKnown:
+		vals := make(map[string]tftypes.Value, 2)
+
+		val, err = v.Exponent.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["exponent"] = val
+
+		val, err = v.Multiplier.ToTerraformValue(ctx)
+
+		if err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		vals["multiplier"] = val
+
+		if err := tftypes.ValidateValue(objectType, vals); err != nil {
+			return tftypes.NewValue(objectType, tftypes.UnknownValue), err
+		}
+
+		return tftypes.NewValue(objectType, vals), nil
+	case attr.ValueStateNull:
+		return tftypes.NewValue(objectType, nil), nil
+	case attr.ValueStateUnknown:
+		return tftypes.NewValue(objectType, tftypes.UnknownValue), nil
+	default:
+		panic(fmt.Sprintf("unhandled Object state in ToTerraformValue: %s", v.state))
+	}
+}
+
+func (v SignalFailureValue) IsNull() bool {
+	return v.state == attr.ValueStateNull
+}
+
+func (v SignalFailureValue) IsUnknown() bool {
+	return v.state == attr.ValueStateUnknown
+}
+
+func (v SignalFailureValue) String() string {
+	return "SignalFailureValue"
+}
+
+func (v SignalFailureValue) ToObjectValue(ctx context.Context) (basetypes.ObjectValue, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	attributeTypes := map[string]attr.Type{
+		"exponent":   basetypes.Int64Type{},
+		"multiplier": basetypes.Int64Type{},
+	}
+
+	if v.IsNull() {
+		return types.ObjectNull(attributeTypes), diags
+	}
+
+	if v.IsUnknown() {
+		return types.ObjectUnknown(attributeTypes), diags
+	}
+
+	objVal, diags := types.ObjectValue(
+		attributeTypes,
+		map[string]attr.Value{
+			"exponent":   v.Exponent,
+			"multiplier": v.Multiplier,
+		})
+
+	return objVal, diags
+}
+
+func (v SignalFailureValue) Equal(o attr.Value) bool {
+	other, ok := o.(SignalFailureValue)
+
+	if !ok {
+		return false
+	}
+
+	if v.state != other.state {
+		return false
+	}
+
+	if v.state != attr.ValueStateKnown {
+		return true
+	}
+
+	if !v.Exponent.Equal(other.Exponent) {
+		return false
+	}
+
+	if !v.Multiplier.Equal(other.Multiplier) {
+		return false
+	}
+
+	return true
+}
+
+func (v SignalFailureValue) Type(ctx context.Context) attr.Type {
+	return SignalFailureType{
+		basetypes.ObjectType{
+			AttrTypes: v.AttributeTypes(ctx),
+		},
+	}
+}
+
+func (v SignalFailureValue) AttributeTypes(ctx context.Context) map[string]attr.Type {
+	return map[string]attr.Type{
+		"exponent":   basetypes.Int64Type{},
+		"multiplier": basetypes.Int64Type{},
 	}
 }
 

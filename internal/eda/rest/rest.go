@@ -57,16 +57,16 @@ func (c *ApiClient) WithTlsConfig(tlsConfig *tls.Config) *ApiClient {
 	return c
 }
 
-func (client *ApiClient) DoLogin(authUrl string, oauthBody map[string]string, res any) (resp *resty.Response, err error) {
-	request := client.restClient.R().
+func (c *ApiClient) DoLogin(authUrl string, oauthBody map[string]string, res any) (resp *resty.Response, err error) {
+	request := c.restClient.R().
 		SetFormData(oauthBody).
 		SetResult(res)
 	return request.Post(authUrl)
 }
 
-func (client *ApiClient) DoPost(accessToken, pathUrl string,
+func (c *ApiClient) DoPost(accessToken, pathUrl string,
 	data any, result any, pathParams map[string]string) (*resty.Response, error) {
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetBody(data).
@@ -75,9 +75,9 @@ func (client *ApiClient) DoPost(accessToken, pathUrl string,
 	return doExecute(request, HTTP_POST, pathUrl)
 }
 
-func (client *ApiClient) DoGet(accessToken, pathUrl string,
+func (c *ApiClient) DoGet(accessToken, pathUrl string,
 	result any, pathParams map[string]string) (*resty.Response, error) {
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetResult(result).
@@ -85,9 +85,9 @@ func (client *ApiClient) DoGet(accessToken, pathUrl string,
 	return doExecute(request, HTTP_GET, pathUrl)
 }
 
-func (client *ApiClient) DoQuery(accessToken, pathUrl string,
+func (c *ApiClient) DoQuery(accessToken, pathUrl string,
 	result any, pathParams map[string]string, queryParams map[string]string) (*resty.Response, error) {
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetQueryParams(queryParams).
@@ -96,9 +96,9 @@ func (client *ApiClient) DoQuery(accessToken, pathUrl string,
 	return doExecute(request, HTTP_GET, pathUrl)
 }
 
-func (client *ApiClient) DoPut(accessToken, pathUrl string,
+func (c *ApiClient) DoPut(accessToken, pathUrl string,
 	data any, result any, pathParams map[string]string) (*resty.Response, error) {
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetBody(data).
@@ -107,9 +107,9 @@ func (client *ApiClient) DoPut(accessToken, pathUrl string,
 	return doExecute(request, HTTP_PUT, pathUrl)
 }
 
-func (client *ApiClient) DoDelete(accessToken, pathUrl string,
+func (c *ApiClient) DoDelete(accessToken, pathUrl string,
 	result any, pathParams map[string]string) (*resty.Response, error) {
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetResult(result).
@@ -117,7 +117,7 @@ func (client *ApiClient) DoDelete(accessToken, pathUrl string,
 	return doExecute(request, HTTP_DELETE, pathUrl)
 }
 
-func (client *ApiClient) DoExecute(
+func (c *ApiClient) DoExecute(
 	method, urlPath, accessToken string,
 	body any,
 	result any,
@@ -125,7 +125,7 @@ func (client *ApiClient) DoExecute(
 	queryParams map[string]string,
 	headers map[string]string) (*resty.Response, error) {
 
-	request := client.restClient.R().
+	request := c.restClient.R().
 		SetAuthToken(accessToken).
 		SetPathParams(pathParams).
 		SetQueryParams(queryParams).

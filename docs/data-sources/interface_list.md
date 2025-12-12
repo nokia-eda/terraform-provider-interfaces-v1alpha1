@@ -24,6 +24,7 @@ description: |-
 - `fields` (String) a comma-separated list of resource fields to fetch/return.  If unspecified, all fields are fetched.  If empty, only key-fields are fetched.
 - `filter` (String) an EQL "where" expression that will be used to filter the set of resources returned.
 - `label_selector` (String) a label selector string to filter the results based on CR labels
+- `labelselector` (String) Deprecated: a label selector string to filter the results based on CR labels
 
 ### Read-Only
 
@@ -40,7 +41,9 @@ Optional:
 
 Read-Only:
 
+- `alarms` (Attributes) (see [below for nested schema](#nestedatt--items--alarms))
 - `api_version` (String)
+- `deviations` (Attributes) (see [below for nested schema](#nestedatt--items--deviations))
 - `kind` (String)
 - `metadata` (Attributes) (see [below for nested schema](#nestedatt--items--metadata))
 - `status` (Attributes) (see [below for nested schema](#nestedatt--items--status))
@@ -66,14 +69,47 @@ Optional:
 
 Optional:
 
+- `crc_monitor` (Attributes) Configuration of CRC monitoring on the interface. (see [below for nested schema](#nestedatt--items--spec--ethernet--crc_monitor))
 - `fec` (String) Sets the Forward Error Correction (FEC) on the members of the interface.
 - `hold_down_timer` (Number) The hold-time down behavior is triggered with events that try to bring the ethernet interface down and can change quickly. It is not triggered with an admin-state disable event or interface disable due to other internal reasons.  Units in milliseconds.
 - `hold_up_timer` (Number) The hold-time up behavior is triggered with any event that tries to bring up the ethernet interface.  While the hold-time up is running, the transceiver laser will be enabled, however the higher layers will not be notified that the interface is operationally up until the timer expires.  Units in milliseconds.
+- `loopback_mode` (String) Enable dataplane loopback on the interface.
 - `reload_delay_timer` (Number) After the system boots, the reload-delay timer in seconds keeps an interface shut down with the laser off for a configured amount of time until connectivity with the rest of network is established.
 - `speed` (String) The speed of this interface, in human-readable format - e.g. 25G, 100G.
 - `standby_signaling` (String) Indicates the standby-signaling used in the interface.
 - `storm_control` (Attributes) Enables storm control. (see [below for nested schema](#nestedatt--items--spec--ethernet--storm_control))
 - `transparent_l2cp_protocols` (List of String) A list of L2CP protocols to tunnel. Options: LLDP, LACP, xSTP, Dot1x, PTP, All.
+
+<a id="nestedatt--items--spec--ethernet--crc_monitor"></a>
+### Nested Schema for `items.spec.ethernet.crc_monitor`
+
+Optional:
+
+- `enabled` (Boolean) Enables CRC monitoring on the interface.
+- `signal_degrade` (Attributes) Signal degrade threshold configuration.
+eda:ui:title="Signal Degrade" (see [below for nested schema](#nestedatt--items--spec--ethernet--crc_monitor--signal_degrade))
+- `signal_failure` (Attributes) Signal failure threshold configuration.
+eda:ui:title="Signal Failure" (see [below for nested schema](#nestedatt--items--spec--ethernet--crc_monitor--signal_failure))
+- `window_size_sec` (Number) Sliding window size over which CRC errors are measured, in number of seconds.
+
+<a id="nestedatt--items--spec--ethernet--crc_monitor--signal_degrade"></a>
+### Nested Schema for `items.spec.ethernet.crc_monitor.signal_degrade`
+
+Optional:
+
+- `exponent` (Number) Threshold exponent for the signal degrade condition.
+- `multiplier` (Number) Threshold multiplier for the signal degrade condition.
+
+
+<a id="nestedatt--items--spec--ethernet--crc_monitor--signal_failure"></a>
+### Nested Schema for `items.spec.ethernet.crc_monitor.signal_failure`
+
+Optional:
+
+- `exponent` (Number) Threshold exponent for the signal failure condition.
+- `multiplier` (Number) Threshold multiplier for the signal failure condition.
+
+
 
 <a id="nestedatt--items--spec--ethernet--storm_control"></a>
 ### Nested Schema for `items.spec.ethernet.storm_control`
@@ -148,6 +184,25 @@ LAG interface with which this interface is associated.
 - `lacp_port_priority` (Number) Configure the port priority for LACP. This value is used to determine which port should be activated with LACP fallback mode. Lower values are more preferred.[default=32768]
 - `node` (String) Node name.
 
+
+
+<a id="nestedatt--items--alarms"></a>
+### Nested Schema for `items.alarms`
+
+Read-Only:
+
+- `critical` (Number)
+- `major` (Number)
+- `minor` (Number)
+- `warning` (Number)
+
+
+<a id="nestedatt--items--deviations"></a>
+### Nested Schema for `items.deviations`
+
+Read-Only:
+
+- `count` (Number)
 
 
 <a id="nestedatt--items--metadata"></a>

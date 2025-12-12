@@ -16,17 +16,17 @@ For support, please join [Nokia EDA Discord](https://eda.dev/discord).
 ### Optional
 
 - `base_url` (String) Base URL
-- `eda_client_id` (String) EDA Client ID
-- `eda_client_secret` (String) EDA Client Secret
-- `eda_password` (String, Sensitive) EDA Password
-- `eda_realm` (String) EDA Realm
-- `eda_username` (String) EDA Username
-- `kc_client_id` (String) Keycloak Client ID
-- `kc_password` (String, Sensitive) Keycloak Password
-- `kc_realm` (String) Keycloak Realm
-- `kc_username` (String) Keycloak Username
+- `client_id` (String) EDA Client ID
+- `client_secret` (String) EDA Client Secret
+- `keycloak_admin_client_id` (String) Keycloak Client ID
+- `keycloak_admin_password` (String, Sensitive) Keycloak Password
+- `keycloak_admin_username` (String) Keycloak Username
+- `keycloak_master_realm` (String) Keycloak Realm
+- `password` (String, Sensitive) EDA Password
+- `realm` (String) EDA Realm
 - `rest_debug` (Boolean) REST Debug
 - `rest_retries` (Number) REST Retries
 - `rest_retry_interval` (String) REST Retry Interval
 - `rest_timeout` (String) REST Timeout
 - `tls_skip_verify` (Boolean) TLS skip verify
+- `username` (String) EDA Username

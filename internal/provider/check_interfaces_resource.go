@@ -11,41 +11,40 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/eda/apiclient"
-	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/resource_breakout"
+	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/resource_check_interfaces"
 	"github.com/nokia/eda/apps/terraform-provider-interfaces/internal/tfutils"
 )
 
 const (
-	create_rs_breakout = "/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts"
-	read_rs_breakout   = "/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}"
-	update_rs_breakout = "/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}"
-	delete_rs_breakout = "/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}"
+	create_rs_checkInterfaces = "/workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess"
+	read_rs_checkInterfaces   = "/workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}"
+	delete_rs_checkInterfaces = "/workflows/v1/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/checkinterfacess/{name}"
 )
 
 var (
-	_ resource.Resource                = (*breakoutResource)(nil)
-	_ resource.ResourceWithConfigure   = (*breakoutResource)(nil)
-	_ resource.ResourceWithImportState = (*breakoutResource)(nil)
+	_ resource.Resource                = (*checkInterfacesResource)(nil)
+	_ resource.ResourceWithConfigure   = (*checkInterfacesResource)(nil)
+	_ resource.ResourceWithImportState = (*checkInterfacesResource)(nil)
 )
 
-func NewBreakoutResource() resource.Resource {
-	return &breakoutResource{}
+func NewCheckInterfacesResource() resource.Resource {
+	return &checkInterfacesResource{}
 }
 
-type breakoutResource struct {
+type checkInterfacesResource struct {
 	client *apiclient.EdaApiClient
 }
 
-func (r *breakoutResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_breakout"
+func (r *checkInterfacesResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_check_interfaces"
 }
 
-func (r *breakoutResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resource_breakout.BreakoutResourceSchema(ctx)
+func (r *checkInterfacesResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = resource_check_interfaces.CheckInterfacesResourceSchema(ctx)
 }
 
-func (r *breakoutResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data resource_breakout.BreakoutModel
+func (r *checkInterfacesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data resource_check_interfaces.CheckInterfacesModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -70,19 +69,19 @@ func (r *breakoutResource) Create(ctx context.Context, req resource.CreateReques
 
 	// Create API call logic
 	tflog.Info(ctx, "Create()::API request", map[string]any{
-		"path": create_rs_breakout,
+		"path": create_rs_checkInterfaces,
 		"body": spew.Sdump(reqBody),
 	})
 
 	t0 := time.Now()
 	result := map[string]any{}
 
-	err = r.client.Create(ctx, create_rs_breakout, map[string]string{
+	err = r.client.Create(ctx, create_rs_checkInterfaces, map[string]string{
 		"namespace": tfutils.StringValue(data.Metadata.Namespace),
 	}, reqBody, &result)
 
 	tflog.Info(ctx, "Create()::API returned", map[string]any{
-		"path":      create_rs_breakout,
+		"path":      create_rs_checkInterfaces,
 		"result":    spew.Sdump(result),
 		"timeTaken": time.Since(t0).String(),
 	})
@@ -95,13 +94,13 @@ func (r *breakoutResource) Create(ctx context.Context, req resource.CreateReques
 	// Read the resource again to populate any values not available in the response from Create()
 	t0 = time.Now()
 
-	err = r.client.Get(ctx, read_rs_breakout, map[string]string{
+	err = r.client.Get(ctx, read_rs_checkInterfaces, map[string]string{
 		"namespace": tfutils.StringValue(data.Metadata.Namespace),
 		"name":      tfutils.StringValue(data.Metadata.Name),
 	}, &result)
 
 	tflog.Info(ctx, "Read()::API returned", map[string]any{
-		"path":      read_rs_breakout,
+		"path":      read_rs_checkInterfaces,
 		"result":    spew.Sdump(result),
 		"timeTaken": time.Since(t0).String(),
 	})
@@ -121,8 +120,8 @@ func (r *breakoutResource) Create(ctx context.Context, req resource.CreateReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, data)...)
 }
 
-func (r *breakoutResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data resource_breakout.BreakoutModel
+func (r *checkInterfacesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data resource_check_interfaces.CheckInterfacesModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -133,20 +132,20 @@ func (r *breakoutResource) Read(ctx context.Context, req resource.ReadRequest, r
 
 	// Read API call logic
 	tflog.Info(ctx, "Read()::API request", map[string]any{
-		"path": read_rs_breakout,
+		"path": read_rs_checkInterfaces,
 		"data": spew.Sdump(data),
 	})
 
 	t0 := time.Now()
 	result := map[string]any{}
 
-	err := r.client.Get(ctx, read_rs_breakout, map[string]string{
+	err := r.client.Get(ctx, read_rs_checkInterfaces, map[string]string{
 		"namespace": tfutils.StringValue(data.Metadata.Namespace),
 		"name":      tfutils.StringValue(data.Metadata.Name),
 	}, &result)
 
 	tflog.Info(ctx, "Read()::API returned", map[string]any{
-		"path":      read_rs_breakout,
+		"path":      read_rs_checkInterfaces,
 		"result":    spew.Sdump(result),
 		"timeTaken": time.Since(t0).String(),
 	})
@@ -167,85 +166,13 @@ func (r *breakoutResource) Read(ctx context.Context, req resource.ReadRequest, r
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *breakoutResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data resource_breakout.BreakoutModel
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	err := tfutils.FillMissingValues(ctx, &data)
-	if err != nil {
-		resp.Diagnostics.AddError("Error filling missing values", err.Error())
-		return
-	}
-
-	reqBody, err := tfutils.ModelToAnyMap(ctx, &data)
-	if err != nil {
-		resp.Diagnostics.AddError("Error building request", err.Error())
-		return
-	}
-
-	// Update API call logic
-	tflog.Info(ctx, "Update()::API request", map[string]any{
-		"path": update_rs_breakout,
-		"body": spew.Sdump(reqBody),
-	})
-
-	t0 := time.Now()
-	result := map[string]any{}
-
-	err = r.client.Update(ctx, update_rs_breakout, map[string]string{
-		"namespace": tfutils.StringValue(data.Metadata.Namespace),
-		"name":      tfutils.StringValue(data.Metadata.Name),
-	}, reqBody, &result)
-
-	tflog.Info(ctx, "Update()::API returned", map[string]any{
-		"path":      update_rs_breakout,
-		"result":    spew.Sdump(result),
-		"timeTaken": time.Since(t0).String(),
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("Error updating resource", err.Error())
-		return
-	}
-
-	// Read the resource again to populate any values not available in the response from Update()
-	t0 = time.Now()
-
-	err = r.client.Get(ctx, read_rs_breakout, map[string]string{
-		"namespace": tfutils.StringValue(data.Metadata.Namespace),
-		"name":      tfutils.StringValue(data.Metadata.Name),
-	}, &result)
-
-	tflog.Info(ctx, "Read()::API returned", map[string]any{
-		"path":      read_rs_breakout,
-		"result":    spew.Sdump(result),
-		"timeTaken": time.Since(t0).String(),
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading resource", err.Error())
-		return
-	}
-
-	// Convert API response to Terraform model
-	err = tfutils.AnyMapToModel(ctx, result, &data)
-	if err != nil {
-		resp.Diagnostics.AddError("Failed to build response from API result", err.Error())
-		return
-	}
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+func (r *checkInterfacesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	// Update not supported for this resource
+	resp.Diagnostics.AddError("Update not supported", "This resource does not support update operation.")
 }
 
-func (r *breakoutResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data resource_breakout.BreakoutModel
+func (r *checkInterfacesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data resource_check_interfaces.CheckInterfacesModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -256,20 +183,20 @@ func (r *breakoutResource) Delete(ctx context.Context, req resource.DeleteReques
 
 	// Delete API call logic
 	tflog.Info(ctx, "Delete()::API request", map[string]any{
-		"path": delete_rs_breakout,
+		"path": delete_rs_checkInterfaces,
 		"data": spew.Sdump(data),
 	})
 
 	t0 := time.Now()
 	result := map[string]any{}
 
-	err := r.client.Delete(ctx, delete_rs_breakout, map[string]string{
+	err := r.client.Delete(ctx, delete_rs_checkInterfaces, map[string]string{
 		"namespace": tfutils.StringValue(data.Metadata.Namespace),
 		"name":      tfutils.StringValue(data.Metadata.Name),
 	}, &result)
 
 	tflog.Info(ctx, "Delete()::API returned", map[string]any{
-		"path":      delete_rs_breakout,
+		"path":      delete_rs_checkInterfaces,
 		"result":    spew.Sdump(result),
 		"timeTaken": time.Since(t0).String(),
 	})
@@ -281,7 +208,7 @@ func (r *breakoutResource) Delete(ctx context.Context, req resource.DeleteReques
 }
 
 // Configure adds the provider configured client to the resource.
-func (r *breakoutResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *checkInterfacesResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Add a nil check when handling ProviderData because Terraform
 	// sets that data after it calls the ConfigureProvider RPC.
 	if req.ProviderData == nil {
@@ -301,7 +228,7 @@ func (r *breakoutResource) Configure(_ context.Context, req resource.ConfigureRe
 }
 
 // ImportState implements resource.ResourceWithImportState.
-func (r *breakoutResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *checkInterfacesResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.Split(req.ID, "/")
 	if len(parts) < 2 {
 		resp.Diagnostics.AddError("Invalid ID", fmt.Sprintf("Expected format: id = <namespace/name>, got: id = %s", req.ID))
