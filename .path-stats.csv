@@ -10,7 +10,7 @@ Path,Method,Schema,Model Name,Supported,Datasource,Resource
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/_deleted,GET,com.nokia.eda.interfaces.v1alpha1.Breakout_DeletedResources,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name},DELETE,Status,breakout,true,false,true
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name},GET,com.nokia.eda.interfaces.v1alpha1.Breakout,breakout,true,true,true
-/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name},PATCH,Patch,,false,false,false
+/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name},PATCH,com.nokia.eda.interfaces.v1alpha1.Breakout,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name},PUT,com.nokia.eda.interfaces.v1alpha1.Breakout,breakout,true,false,true
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}/_revs,GET,ResourceHistory,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/breakouts/{name}/_targets,GET,IntentTargets,,false,false,false
@@ -22,7 +22,7 @@ Path,Method,Schema,Model Name,Supported,Datasource,Resource
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/_deleted,GET,com.nokia.eda.interfaces.v1alpha1.Interface_DeletedResources,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name},DELETE,Status,interface,true,false,true
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name},GET,com.nokia.eda.interfaces.v1alpha1.Interface,interface,true,true,true
-/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name},PATCH,Patch,,false,false,false
+/apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name},PATCH,com.nokia.eda.interfaces.v1alpha1.Interface,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name},PUT,com.nokia.eda.interfaces.v1alpha1.Interface,interface,true,false,true
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}/_revs,GET,ResourceHistory,,false,false,false
 /apps/interfaces.eda.nokia.com/v1alpha1/namespaces/{namespace}/interfaces/{name}/_targets,GET,IntentTargets,,false,false,false
